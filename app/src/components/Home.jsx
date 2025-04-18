@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { FiChevronDown, FiChevronUp, FiSend, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
+
+const handelDashboard = () => { 
+    window.location.href = '/dashboard';
+};
 const taglines = [
   "Smart Energy, Simple Living",
   "Save Watts, Save Wallet",
@@ -156,30 +160,16 @@ export default function KriyetaApp() {
 
   return (
     <div className="font-sans bg-gray-50 min-h-screen">
-      {/* Animated Header */}
+     
       <header className="relative bg-gradient-to-r from-green-500 to-green-600 text-white p-6 shadow-lg">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-green-600 font-bold text-xl">KE</div>
-            <h1 className="text-2xl font-bold">Kriyeta Energy</h1>
-          </div>
-          <div className="hidden md:flex items-center space-x-6">
-            <button className="hover:text-green-200 transition">Home</button>
-            <button className="hover:text-green-200 transition">Features</button>
-            <button className="hover:text-green-200 transition">FAQ</button>
-            <button className="bg-white text-green-600 px-4 py-2 rounded-lg font-medium hover:bg-green-50 transition">
-              Get Started
-            </button>
-          </div>
-        </div>
         
-        {/* User welcome section with animation */}
         <div className="container mx-auto mt-8 mb-6 animate-fadeIn">
           <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-6 max-w-2xl">
             <h1 className="text-3xl font-bold text-black mb-2">Welcome back, Aryan!</h1>
             <p className="text-lg mb-4 text-gray-600">How can we make your energy management better today?</p>
             <div className="flex space-x-3">
-              <button className="bg-white text-green-600 px-4 py-2 rounded-lg font-medium hover:bg-green-50 transition">
+              <button className="bg-white text-green-600 px-4 py-2 rounded-lg font-medium hover:bg-green-50 transition"
+              onClick={handelDashboard}>
                 View Dashboard
               </button>
              

@@ -136,7 +136,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center">
-      <div className="text-2xl font-bold text-green-600">MyLogo</div>
+      <div className="text-2xl font-bold text-green-600"><button onClick={handleHome}>MyLogo</button></div>
 
       {/* Auth Modal */}
       {showAuthModal && (
