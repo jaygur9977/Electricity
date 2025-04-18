@@ -7,6 +7,7 @@ import Home from './components/Home';
 import History from './components/History';
 import Appliances from'./components/Appliances';
 import Dashboard from './components/Dashboard';
+import Tips from'./components/Tips';
 
 const router = createBrowserRouter([
   {
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
   {
     path:"/dashboard",
     element:<Dashboard/>
+  },
+  {
+    path:"/tips",
+    element:<Tips/>
   },
 
  

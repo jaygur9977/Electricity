@@ -1,4 +1,6 @@
-// // server.js
+
+
+
 // require('dotenv').config();
 // const express = require('express');
 // const mongoose = require('mongoose');
@@ -23,6 +25,9 @@
 //   image: { type: String, required: true },
 //   price: { type: String, required: true },
 //   features: { type: [String], required: true },
+//   starRating: { type: Number, min: 1, max: 5, required: true },
+//   warranty: { type: String, required: true },  // e.g., "12 months"
+//   guarantee: { type: String, required: true },  // e.g., "24 months"
 //   createdAt: { type: Date, default: Date.now }
 // });
 
@@ -39,34 +44,48 @@
 // });
 
 // app.post('/api/appliances', async (req, res) => {
-//   const appliance = new Appliance({
-//     name: req.body.name,
-//     model: req.body.model,
-//     image: req.body.image,
-//     price: req.body.price,
-//     features: req.body.features
+//     const appliance = new Appliance({
+//       name: req.body.name,
+//       model: req.body.model,
+//       image: req.body.image,
+//       price: req.body.price,
+//       features: req.body.features || [], // Ensure features is always an array
+//       starRating: req.body.starRating,
+//       warranty: req.body.warranty,
+//       guarantee: req.body.guarantee
+//     });
+  
+//     try {
+//       const newAppliance = await appliance.save();
+//       res.status(201).json(newAppliance);
+//     } catch (err) {
+//       res.status(400).json({ message: err.message });
+//     }
 //   });
+  
 
-//   try {
-//     const newAppliance = await appliance.save();
-//     res.status(201).json(newAppliance);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// });
-
-// app.put('/api/appliances/:id', async (req, res) => {
-//   try {
-//     const updatedAppliance = await Appliance.findByIdAndUpdate(
-//       req.params.id,
-//       req.body,
-//       { new: true }
-//     );
-//     res.json(updatedAppliance);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// });
+//   app.put('/api/appliances/:id', async (req, res) => {
+//     try {
+//       const updatedAppliance = await Appliance.findByIdAndUpdate(
+//         req.params.id,
+//         {
+//           name: req.body.name,
+//           model: req.body.model,
+//           image: req.body.image,
+//           price: req.body.price,
+//           features: req.body.features || [],
+//           starRating: req.body.starRating,
+//           warranty: req.body.warranty,
+//           guarantee: req.body.guarantee
+//         },
+//         { new: true }
+//       );
+//       res.json(updatedAppliance);
+//     } catch (err) {
+//       res.status(400).json({ message: err.message });
+//     }
+//   });
+  
 
 // app.delete('/api/appliances/:id', async (req, res) => {
 //   try {
@@ -108,14 +127,14 @@ const applianceSchema = new mongoose.Schema({
   price: { type: String, required: true },
   features: { type: [String], required: true },
   starRating: { type: Number, min: 1, max: 5, required: true },
-  warranty: { type: String, required: true },  // e.g., "12 months"
-  guarantee: { type: String, required: true },  // e.g., "24 months"
+  warranty: { type: String, required: true },
+  guarantee: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
 const Appliance = mongoose.model('Appliance', applianceSchema);
 
-// Routes
+// Routes - Appliance CRUD
 app.get('/api/appliances', async (req, res) => {
   try {
     const appliances = await Appliance.find().sort({ createdAt: -1 });
@@ -131,7 +150,7 @@ app.post('/api/appliances', async (req, res) => {
     model: req.body.model,
     image: req.body.image,
     price: req.body.price,
-    features: req.body.features,
+    features: req.body.features || [],
     starRating: req.body.starRating,
     warranty: req.body.warranty,
     guarantee: req.body.guarantee
@@ -149,7 +168,16 @@ app.put('/api/appliances/:id', async (req, res) => {
   try {
     const updatedAppliance = await Appliance.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      {
+        name: req.body.name,
+        model: req.body.model,
+        image: req.body.image,
+        price: req.body.price,
+        features: req.body.features || [],
+        starRating: req.body.starRating,
+        warranty: req.body.warranty,
+        guarantee: req.body.guarantee
+      },
       { new: true }
     );
     res.json(updatedAppliance);
@@ -167,5 +195,30 @@ app.delete('/api/appliances/:id', async (req, res) => {
   }
 });
 
+// Tips Generation Route
+app.post('/generate-tip', (req, res) => {
+  const data = req.body;
+
+  const tips = [];
+
+  data.forEach((item) => {
+    if (item.appliance === 'AC' && item.usage > 2) {
+      tips.push(`❄️ Your AC used ${item.usage} kWh on ${item.date}. Try setting a timer to reduce usage and save up to ₹150/month.`);
+    }
+
+    if (item.appliance === 'Geyser' && item.duration > 1) {
+      tips.push(`💧 Your geyser ran for ${item.duration} hours on ${item.date}. Reduce to 15 mins to cut bills by 20%.`);
+    }
+
+    if (item.appliance === 'Lights' && item.usage > 1.5) {
+      tips.push(`💡 Lights were on unusually long on ${item.date}. Try turning off during daylight.`);
+    }
+  });
+
+  res.json({ tips: tips.length ? tips : ['👍 All looks good! No unusual usage detected.'] });
+});
+
 // Start server
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
