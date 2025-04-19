@@ -1,178 +1,186 @@
+// // backend/server.js
+// require('dotenv').config();
+// const express = require('express');
+// const cors = require('cors');
+// const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// const app = express();
+// const port = process.env.PORT || 5000;
+
+// // Middleware
+// app.use(cors());
+// app.use(express.json());
+
+// // Initialize Gemini API
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// app.post('/api/ask-gemini', async (req, res) => {
+//   try {
+//     const { question } = req.body;
+    
+//     if (!question) {
+//       return res.status(400).json({ error: 'Question is required' });
+//     }
+
+//     // For text-only input, use the gemini-pro model
+//     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+//     const result = await model.generateContent(question);
+//     const response = await result.response;
+//     const text = response.text();
+
+//     console.log('Gemini response:', text);
+//     res.json({ answer: text });
+//   } catch (error) {
+//     console.error('Error calling Gemini API:', error);
+//     res.status(500).json({ error: 'Failed to get response from Gemini' });
+//   }
+// });
+
+// app.listen(port, () => {
+//   console.log(`Server running on port ${port}`);
+// });
+
+
+
+
+// // backend/server.js
+// require('dotenv').config();
+// const express = require('express');
+// const cors = require('cors');
+// const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// const app = express();
+// const port = process.env.PORT || 5000;
+
+// // Middleware
+// app.use(cors());
+// app.use(express.json());
+
+// // Initialize Gemini API
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// app.post('/api/calculate-energy', async (req, res) => {
+//   try {
+//     const { householdData } = req.body;
+    
+//     if (!householdData || !householdData.appliances || householdData.appliances.length === 0) {
+//       return res.status(400).json({ error: 'Household data with appliances is required' });
+//     }
+
+//     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+//     // Create a detailed prompt for Gemini
+//     const prompt = `Analyze this household energy consumption data and provide:
+//     1. Energy consumption summary for each appliance (in kWh)
+//     2. Daily and monthly cost estimates (assuming $0.15 per kWh)
+//     3. Energy-saving recommendations
+    
+//     Household details:
+//     - Number of residents: ${householdData.residents || 'Not specified'}
+//     - Home size: ${householdData.homeSize || 'Not specified'}
+    
+//     Appliances:
+//     ${householdData.appliances.map(app => `
+//     - ${app.name}: ${app.wattage}W, used ${app.hoursPerDay} hours/day, ${app.daysPerWeek || 7} days/week
+//     `).join('')}
+    
+//     Provide the response in clear markdown format with sections.`;
+
+//     const result = await model.generateContent(prompt);
+//     const response = await result.response;
+//     const text = response.text();
+
+//     console.log('Gemini analysis:', text);
+//     res.json({ analysis: text });
+//   } catch (error) {
+//     console.error('Error calling Gemini API:', error);
+//     res.status(500).json({ error: 'Failed to analyze energy data' });
+//   }
+// });
+
+// app.listen(port, () => {
+//   console.log(`Server running on port ${port}`);
+// });
+
+
+
+
+// backend/server.js
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
 const app = express();
+const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/appliances', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+// Initialize Gemini API
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// User Schema
-const UserSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-  createdAt: { type: Date, default: Date.now }
-});
-
-const User = mongoose.model('User', UserSchema);
-
-// Consumption Schema
-const ConsumptionSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  date: { type: Date, required: true },
-  consumption: { type: Number, required: true },
-  cost: { type: Number, required: true },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const Consumption = mongoose.model('Consumption', ConsumptionSchema);
-
-// Weekly Data Schema
-const WeeklyDataSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  weekStart: { type: Date, required: true },
-  weekEnd: { type: Date, required: true },
-  days: [{
-    day: { type: String, enum: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
-    consumption: Number,
-    cost: Number
-  }],
-  totalConsumption: Number,
-  totalCost: Number
-});
-
-const WeeklyData = mongoose.model('WeeklyData', WeeklyDataSchema);
-
-// Authentication Middleware
-const authenticate = async (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-  if (!token) return res.status(401).send('Access denied');
-
+app.post('/api/calculate-energy', async (req, res) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    req.user = await User.findById(decoded.id);
-    next();
-  } catch (err) {
-    res.status(400).send('Invalid token');
-  }
-};
-
-// Routes
-
-// User Registration
-app.post('/api/register', async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword });
-    await user.save();
+    const { householdData } = req.body;
     
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'your-secret-key');
-    res.status(201).send({ user, token });
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});
+    if (!householdData || !householdData.appliances || householdData.appliances.length === 0) {
+      return res.status(400).json({ error: 'Household data with appliances is required' });
+    }
 
-// User Login
-app.post('/api/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).send('User not found');
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).send('Invalid credentials');
+    // Create a detailed prompt for Gemini
+    const prompt = `Analyze this household energy consumption data and provide:
+    1. Energy consumption summary for each appliance (in kWh)
+    2. Daily, weekly, and monthly cost estimates (assuming $0.15 per kWh)
+    3. Energy-saving recommendations
+    4. JSON format data for visualization with this structure:
+    {
+      "summary": "text summary",
+      "dailyUsage": { "appliance1": kWh, "appliance2": kWh },
+      "weeklyUsage": { "appliance1": kWh, "appliance2": kWh },
+      "monthlyUsage": { "appliance1": kWh, "appliance2": kWh },
+      "recommendations": ["tip1", "tip2"]
+    }
+    
+    Household details:
+    - Number of residents: ${householdData.residents || 'Not specified'}
+    - BHK type: ${householdData.bhk || 'Not specified'}
+    
+    Appliances:
+    ${householdData.appliances.map(app => `
+    - ${app.name}: ${app.wattage}W, used ${app.hoursPerDay} hours/day, ${app.daysPerWeek || 7} days/week
+    `).join('')}`;
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'your-secret-key');
-    res.send({ user, token });
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
 
-// Add Consumption Data
-app.post('/api/consumption', authenticate, async (req, res) => {
-  try {
-    const { date, consumption, cost } = req.body;
-    const newConsumption = new Consumption({
-      userId: req.user._id,
-      date: new Date(date),
-      consumption,
-      cost
+    // Extract JSON data if present in the response
+    let jsonData = {};
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonData = JSON.parse(jsonMatch[0]);
+      }
+    } catch (e) {
+      console.error('Error parsing JSON from Gemini:', e);
+    }
+
+    console.log('Gemini analysis:', text);
+    res.json({ 
+      analysis: text,
+      chartData: jsonData
     });
-    await newConsumption.save();
-    res.status(201).send(newConsumption);
-  } catch (err) {
-    res.status(400).send(err.message);
+  } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    res.status(500).json({ error: 'Failed to analyze energy data' });
   }
 });
 
-// Add Weekly Data
-app.post('/api/weekly', authenticate, async (req, res) => {
-  try {
-    const { weekStart, weekEnd, days } = req.body;
-    const totalConsumption = days.reduce((sum, day) => sum + day.consumption, 0);
-    const totalCost = days.reduce((sum, day) => sum + day.cost, 0);
-    
-    const newWeeklyData = new WeeklyData({
-      userId: req.user._id,
-      weekStart: new Date(weekStart),
-      weekEnd: new Date(weekEnd),
-      days,
-      totalConsumption,
-      totalCost
-    });
-    
-    await newWeeklyData.save();
-    res.status(201).send(newWeeklyData);
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
-
-// Get Historical Data
-app.get('/api/historical', authenticate, async (req, res) => {
-  try {
-    const data = await Consumption.find({ userId: req.user._id })
-      .sort({ date: 1 })
-      .limit(60); // Last 60 days (2 months)
-    
-    const formattedData = data.map(item => ({
-      date: item.date.toISOString().split('T')[0],
-      consumption: item.consumption,
-      cost: item.cost
-    }));
-    
-    res.send(formattedData);
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});
-
-// Get Weekly Data
-app.get('/api/weekly', authenticate, async (req, res) => {
-  try {
-    const data = await WeeklyData.find({ userId: req.user._id })
-      .sort({ weekStart: -1 })
-      .limit(4); // Last 4 weeks
-    
-    res.send(data);
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});
-
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
