@@ -1,224 +1,178 @@
-
-
-
-// require('dotenv').config();
-// const express = require('express');
-// const mongoose = require('mongoose');
-// const cors = require('cors');
-
-// const app = express();
-// const PORT = process.env.PORT || 5000;
-
-// // Middleware
-// app.use(cors());
-// app.use(express.json());
-
-// // MongoDB Connection
-// mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/appliances')
-//   .then(() => console.log('Connected to MongoDB'))
-//   .catch(err => console.error('MongoDB connection error:', err));
-
-// // Appliance Model
-// const applianceSchema = new mongoose.Schema({
-//   name: { type: String, required: true },
-//   model: { type: String, required: true },
-//   image: { type: String, required: true },
-//   price: { type: String, required: true },
-//   features: { type: [String], required: true },
-//   starRating: { type: Number, min: 1, max: 5, required: true },
-//   warranty: { type: String, required: true },  // e.g., "12 months"
-//   guarantee: { type: String, required: true },  // e.g., "24 months"
-//   createdAt: { type: Date, default: Date.now }
-// });
-
-// const Appliance = mongoose.model('Appliance', applianceSchema);
-
-// // Routes
-// app.get('/api/appliances', async (req, res) => {
-//   try {
-//     const appliances = await Appliance.find().sort({ createdAt: -1 });
-//     res.json(appliances);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// });
-
-// app.post('/api/appliances', async (req, res) => {
-//     const appliance = new Appliance({
-//       name: req.body.name,
-//       model: req.body.model,
-//       image: req.body.image,
-//       price: req.body.price,
-//       features: req.body.features || [], // Ensure features is always an array
-//       starRating: req.body.starRating,
-//       warranty: req.body.warranty,
-//       guarantee: req.body.guarantee
-//     });
-  
-//     try {
-//       const newAppliance = await appliance.save();
-//       res.status(201).json(newAppliance);
-//     } catch (err) {
-//       res.status(400).json({ message: err.message });
-//     }
-//   });
-  
-
-//   app.put('/api/appliances/:id', async (req, res) => {
-//     try {
-//       const updatedAppliance = await Appliance.findByIdAndUpdate(
-//         req.params.id,
-//         {
-//           name: req.body.name,
-//           model: req.body.model,
-//           image: req.body.image,
-//           price: req.body.price,
-//           features: req.body.features || [],
-//           starRating: req.body.starRating,
-//           warranty: req.body.warranty,
-//           guarantee: req.body.guarantee
-//         },
-//         { new: true }
-//       );
-//       res.json(updatedAppliance);
-//     } catch (err) {
-//       res.status(400).json({ message: err.message });
-//     }
-//   });
-  
-
-// app.delete('/api/appliances/:id', async (req, res) => {
-//   try {
-//     await Appliance.findByIdAndDelete(req.params.id);
-//     res.json({ message: 'Appliance deleted successfully' });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// });
-
-// // Start server
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-
-
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/appliances')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/appliances', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
-// Appliance Model
-const applianceSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  model: { type: String, required: true },
-  image: { type: String, required: true },
-  price: { type: String, required: true },
-  features: { type: [String], required: true },
-  starRating: { type: Number, min: 1, max: 5, required: true },
-  warranty: { type: String, required: true },
-  guarantee: { type: String, required: true },
+// User Schema
+const UserSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
   createdAt: { type: Date, default: Date.now }
 });
 
-const Appliance = mongoose.model('Appliance', applianceSchema);
+const User = mongoose.model('User', UserSchema);
 
-// Routes - Appliance CRUD
-app.get('/api/appliances', async (req, res) => {
+// Consumption Schema
+const ConsumptionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  date: { type: Date, required: true },
+  consumption: { type: Number, required: true },
+  cost: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Consumption = mongoose.model('Consumption', ConsumptionSchema);
+
+// Weekly Data Schema
+const WeeklyDataSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  weekStart: { type: Date, required: true },
+  weekEnd: { type: Date, required: true },
+  days: [{
+    day: { type: String, enum: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
+    consumption: Number,
+    cost: Number
+  }],
+  totalConsumption: Number,
+  totalCost: Number
+});
+
+const WeeklyData = mongoose.model('WeeklyData', WeeklyDataSchema);
+
+// Authentication Middleware
+const authenticate = async (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) return res.status(401).send('Access denied');
+
   try {
-    const appliances = await Appliance.find().sort({ createdAt: -1 });
-    res.json(appliances);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    req.user = await User.findById(decoded.id);
+    next();
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).send('Invalid token');
+  }
+};
+
+// Routes
+
+// User Registration
+app.post('/api/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ name, email, password: hashedPassword });
+    await user.save();
+    
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'your-secret-key');
+    res.status(201).send({ user, token });
+  } catch (err) {
+    res.status(400).send(err.message);
   }
 });
 
-app.post('/api/appliances', async (req, res) => {
-  const appliance = new Appliance({
-    name: req.body.name,
-    model: req.body.model,
-    image: req.body.image,
-    price: req.body.price,
-    features: req.body.features || [],
-    starRating: req.body.starRating,
-    warranty: req.body.warranty,
-    guarantee: req.body.guarantee
-  });
-
+// User Login
+app.post('/api/login', async (req, res) => {
   try {
-    const newAppliance = await appliance.save();
-    res.status(201).json(newAppliance);
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).send('User not found');
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).send('Invalid credentials');
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'your-secret-key');
+    res.send({ user, token });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).send(err.message);
   }
 });
 
-app.put('/api/appliances/:id', async (req, res) => {
+// Add Consumption Data
+app.post('/api/consumption', authenticate, async (req, res) => {
   try {
-    const updatedAppliance = await Appliance.findByIdAndUpdate(
-      req.params.id,
-      {
-        name: req.body.name,
-        model: req.body.model,
-        image: req.body.image,
-        price: req.body.price,
-        features: req.body.features || [],
-        starRating: req.body.starRating,
-        warranty: req.body.warranty,
-        guarantee: req.body.guarantee
-      },
-      { new: true }
-    );
-    res.json(updatedAppliance);
+    const { date, consumption, cost } = req.body;
+    const newConsumption = new Consumption({
+      userId: req.user._id,
+      date: new Date(date),
+      consumption,
+      cost
+    });
+    await newConsumption.save();
+    res.status(201).send(newConsumption);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).send(err.message);
   }
 });
 
-app.delete('/api/appliances/:id', async (req, res) => {
+// Add Weekly Data
+app.post('/api/weekly', authenticate, async (req, res) => {
   try {
-    await Appliance.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Appliance deleted successfully' });
+    const { weekStart, weekEnd, days } = req.body;
+    const totalConsumption = days.reduce((sum, day) => sum + day.consumption, 0);
+    const totalCost = days.reduce((sum, day) => sum + day.cost, 0);
+    
+    const newWeeklyData = new WeeklyData({
+      userId: req.user._id,
+      weekStart: new Date(weekStart),
+      weekEnd: new Date(weekEnd),
+      days,
+      totalConsumption,
+      totalCost
+    });
+    
+    await newWeeklyData.save();
+    res.status(201).send(newWeeklyData);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).send(err.message);
   }
 });
 
-// Tips Generation Route
-app.post('/generate-tip', (req, res) => {
-  const data = req.body;
-
-  const tips = [];
-
-  data.forEach((item) => {
-    if (item.appliance === 'AC' && item.usage > 2) {
-      tips.push(`❄️ Your AC used ${item.usage} kWh on ${item.date}. Try setting a timer to reduce usage and save up to ₹150/month.`);
-    }
-
-    if (item.appliance === 'Geyser' && item.duration > 1) {
-      tips.push(`💧 Your geyser ran for ${item.duration} hours on ${item.date}. Reduce to 15 mins to cut bills by 20%.`);
-    }
-
-    if (item.appliance === 'Lights' && item.usage > 1.5) {
-      tips.push(`💡 Lights were on unusually long on ${item.date}. Try turning off during daylight.`);
-    }
-  });
-
-  res.json({ tips: tips.length ? tips : ['👍 All looks good! No unusual usage detected.'] });
+// Get Historical Data
+app.get('/api/historical', authenticate, async (req, res) => {
+  try {
+    const data = await Consumption.find({ userId: req.user._id })
+      .sort({ date: 1 })
+      .limit(60); // Last 60 days (2 months)
+    
+    const formattedData = data.map(item => ({
+      date: item.date.toISOString().split('T')[0],
+      consumption: item.consumption,
+      cost: item.cost
+    }));
+    
+    res.send(formattedData);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Get Weekly Data
+app.get('/api/weekly', authenticate, async (req, res) => {
+  try {
+    const data = await WeeklyData.find({ userId: req.user._id })
+      .sort({ weekStart: -1 })
+      .limit(4); // Last 4 weeks
+    
+    res.send(data);
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
 });
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

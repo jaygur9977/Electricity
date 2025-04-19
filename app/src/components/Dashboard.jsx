@@ -8,7 +8,8 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Legend
 } from "recharts";
 
 const taglines = [
@@ -24,38 +25,6 @@ const taglines = [
   "Smarter Homes Start With Smarter Choices"
 ];
 
-// Dummy data for weekly and monthly charts
-const weeklyData = [
-  { day: 'Mon', usage: 20 },
-  { day: 'Tue', usage: 25 },
-  { day: 'Wed', usage: 18 },
-  { day: 'Thu', usage: 30 },
-  { day: 'Fri', usage: 22 },
-  { day: 'Sat', usage: 28 },
-  { day: 'Sun', usage: 24 }
-];
-
-const monthlyData = [
-  { month: 'Jan', usage: 120 },
-  { month: 'Feb', usage: 98 },
-  { month: 'Mar', usage: 134 },
-  { month: 'Apr', usage: 110 },
-  { month: 'May', usage: 150 },
-  { month: 'Jun', usage: 165 }
-];
-
-// Cost prediction dummy data
-const costPredictionData = period =>
-  period === 'weekly'
-    ? [
-        { name: 'Current Week', cost: 18 },
-        { name: 'Target Week', cost: 15 }
-      ]
-    : [
-        { name: 'Current Month', cost: 75 },
-        { name: 'Target Month', cost: 60 }
-      ];
-
 const FeatureCard = ({ title, description, icon, color }) => {
   return (
     <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100">
@@ -68,17 +37,241 @@ const FeatureCard = ({ title, description, icon, color }) => {
   );
 };
 
+const DataInputForm = ({ onSubmitConsumption, onSubmitWeekly }) => {
+  const [date, setDate] = useState("");
+  const [consumption, setConsumption] = useState("");
+  const [cost, setCost] = useState("");
+  const [weeklyData, setWeeklyData] = useState({
+    weekStart: "",
+    weekEnd: "",
+    days: Array(7).fill().map((_, i) => ({
+      day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
+      consumption: 0,
+      cost: 0
+    }))
+  });
+  const [activeTab, setActiveTab] = useState('daily');
+
+  const handleDailySubmit = (e) => {
+    e.preventDefault();
+    onSubmitConsumption({ date, consumption: parseFloat(consumption), cost: parseFloat(cost) });
+    setDate("");
+    setConsumption("");
+    setCost("");
+  };
+
+  const handleWeeklySubmit = (e) => {
+    e.preventDefault();
+    onSubmitWeekly(weeklyData);
+    setWeeklyData({
+      weekStart: "",
+      weekEnd: "",
+      days: Array(7).fill().map((_, i) => ({
+        day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
+        consumption: 0,
+        cost: 0
+      }))
+    });
+  };
+
+  const updateDayData = (index, field, value) => {
+    const newDays = [...weeklyData.days];
+    newDays[index][field] = parseFloat(value) || 0;
+    setWeeklyData({ ...weeklyData, days: newDays });
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow p-6 mb-6">
+      <h3 className="text-lg font-semibold mb-4">Add Consumption Data</h3>
+      <div className="flex space-x-4 mb-4">
+        <button
+          onClick={() => setActiveTab('daily')}
+          className={`px-4 py-2 rounded ${activeTab === 'daily' ? 'bg-orange-700 text-white' : 'bg-gray-200'}`}
+        >
+          Daily Data
+        </button>
+        <button
+          onClick={() => setActiveTab('weekly')}
+          className={`px-4 py-2 rounded ${activeTab === 'weekly' ? 'bg-orange-700 text-white' : 'bg-gray-200'}`}
+        >
+          Weekly Data
+        </button>
+      </div>
+
+      {activeTab === 'daily' ? (
+        <form onSubmit={handleDailySubmit} className="space-y-4">
+          <div>
+            <label className="block text-gray-700 mb-1">Date</label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1">Consumption (kWh)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={consumption}
+              onChange={(e) => setConsumption(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 mb-1">Cost (₹)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={cost}
+              onChange={(e) => setCost(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition"
+          >
+            Add Daily Data
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleWeeklySubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-700 mb-1">Week Start Date</label>
+              <input
+                type="date"
+                value={weeklyData.weekStart}
+                onChange={(e) => setWeeklyData({ ...weeklyData, weekStart: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-1">Week End Date</label>
+              <input
+                type="date"
+                value={weeklyData.weekEnd}
+                onChange={(e) => setWeeklyData({ ...weeklyData, weekEnd: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded"
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h4 className="font-medium">Daily Consumption</h4>
+            {weeklyData.days.map((day, index) => (
+              <div key={day.day} className="grid grid-cols-3 gap-2 items-center">
+                <span className="font-medium">{day.day}</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="kWh"
+                  value={day.consumption}
+                  onChange={(e) => updateDayData(index, 'consumption', e.target.value)}
+                  className="p-2 border border-gray-300 rounded"
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="₹"
+                  value={day.cost}
+                  onChange={(e) => updateDayData(index, 'cost', e.target.value)}
+                  className="p-2 border border-gray-300 rounded"
+                />
+              </div>
+            ))}
+          </div>
+          <button
+            type="submit"
+            className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition"
+          >
+            Add Weekly Data
+          </button>
+        </form>
+      )}
+    </div>
+  );
+};
+
 export default function KriyetaApp() {
   const [tagline, setTagline] = useState("");
   const [suggestion, setSuggestion] = useState("");
   const [responseMsg, setResponseMsg] = useState("");
   const [activeTab, setActiveTab] = useState('dashboard');
   const [period, setPeriod] = useState('weekly');
+  const [historicalData, setHistoricalData] = useState([]);
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const idx = Math.floor(Math.random() * taglines.length);
     setTagline(taglines[idx]);
+    
+    // Load sample data initially
+    const sampleHistoricalData = [
+      { date: '2023-05-01', consumption: 12.5, cost: 85.0 },
+      { date: '2023-05-02', consumption: 11.8, cost: 80.2 },
+      { date: '2023-05-03', consumption: 13.2, cost: 89.7 },
+      { date: '2023-05-04', consumption: 14.0, cost: 95.2 },
+      { date: '2023-05-05', consumption: 10.5, cost: 71.4 },
+      { date: '2023-05-06', consumption: 15.2, cost: 103.3 },
+      { date: '2023-05-07', consumption: 12.8, cost: 87.0 },
+    ];
+    
+    const sampleWeeklyData = [{
+      weekStart: '2023-05-01',
+      weekEnd: '2023-05-07',
+      days: [
+        { day: 'Mon', consumption: 12.5, cost: 85.0 },
+        { day: 'Tue', consumption: 11.8, cost: 80.2 },
+        { day: 'Wed', consumption: 13.2, cost: 89.7 },
+        { day: 'Thu', consumption: 14.0, cost: 95.2 },
+        { day: 'Fri', consumption: 10.5, cost: 71.4 },
+        { day: 'Sat', consumption: 15.2, cost: 103.3 },
+        { day: 'Sun', consumption: 12.8, cost: 87.0 },
+      ],
+      totalConsumption: 90.0,
+      totalCost: 611.8
+    }];
+    
+    setHistoricalData(sampleHistoricalData);
+    setWeeklyData(sampleWeeklyData);
   }, []);
+
+  const submitConsumptionData = (data) => {
+    setIsLoading(true);
+    setTimeout(() => {
+      const newData = {
+        ...data,
+        date: data.date || new Date().toISOString().split('T')[0]
+      };
+      setHistoricalData([...historicalData, newData]);
+      setIsLoading(false);
+    }, 500);
+  };
+
+  const submitWeeklyData = (data) => {
+    setIsLoading(true);
+    setTimeout(() => {
+      const totalConsumption = data.days.reduce((sum, day) => sum + day.consumption, 0);
+      const totalCost = data.days.reduce((sum, day) => sum + day.cost, 0);
+      
+      const newWeeklyData = {
+        ...data,
+        totalConsumption,
+        totalCost
+      };
+      
+      setWeeklyData([newWeeklyData, ...weeklyData]);
+      setIsLoading(false);
+    }, 500);
+  };
 
   const submitSuggestion = () => {
     if (suggestion.trim()) {
@@ -90,8 +283,15 @@ export default function KriyetaApp() {
   };
 
   const renderDashboard = () => {
-    const data = period === 'weekly' ? weeklyData : monthlyData;
-    const costData = costPredictionData(period);
+    const costPredictionData = period === 'weekly'
+      ? [
+          { name: 'Current Week', cost: weeklyData[0]?.totalCost || 0 },
+          { name: 'Target Week', cost: (weeklyData[0]?.totalCost || 0) * 0.85 }
+        ]
+      : [
+          { name: 'Current Month', cost: historicalData.reduce((sum, item) => sum + item.cost, 0) },
+          { name: 'Target Month', cost: historicalData.reduce((sum, item) => sum + item.cost, 0) * 0.85 }
+        ];
 
     return (
       <div className="p-6 space-y-6">
@@ -99,6 +299,12 @@ export default function KriyetaApp() {
         <div className="bg-orange-600 text-white py-3 px-4 rounded-lg text-center">
           <p className="font-medium">{tagline}</p>
         </div>
+
+        {/* Data Input Form */}
+        <DataInputForm 
+          onSubmitConsumption={submitConsumptionData} 
+          onSubmitWeekly={submitWeeklyData} 
+        />
 
         {/* Period selector */}
         <div className="flex space-x-4">
@@ -119,31 +325,94 @@ export default function KriyetaApp() {
         {/* Charts section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl shadow p-6">
-            <h3 className="text-lg font-semibold mb-2">{period === 'weekly' ? 'Weekly' : 'Monthly'} Consumption</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={data}>
+            <h3 className="text-lg font-semibold mb-2">
+              {period === 'weekly' ? 'Weekly' : 'Monthly'} Consumption
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart
+                data={period === 'weekly' 
+                  ? weeklyData[0]?.days || [] 
+                  : historicalData.slice(-30) // Last 30 days
+                }
+              >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={period === 'weekly' ? 'day' : 'month'} />
+                <XAxis dataKey={period === 'weekly' ? 'day' : 'date'} />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="usage" stroke="#f97316" strokeWidth={2} />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="consumption" 
+                  name="Consumption (kWh)"
+                  stroke="#f97316" 
+                  strokeWidth={2} 
+                  activeDot={{ r: 8 }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="cost" 
+                  name="Cost (₹)"
+                  stroke="#4f46e5" 
+                  strokeWidth={2} 
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
           <div className="bg-white rounded-xl shadow p-6">
             <h3 className="text-lg font-semibold mb-2">Cost Prediction vs Goal</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={costData}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={costPredictionData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="cost" fill="#f97316" barSize={30} radius={[5, 5, 0, 0]} />
+                <Legend />
+                <Bar 
+                  dataKey="cost" 
+                  name="Cost (₹)"
+                  fill="#f97316" 
+                  barSize={30} 
+                  radius={[5, 5, 0, 0]} 
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
+
+        {/* Historical Data Chart */}
+        {historicalData.length > 0 && (
+          <div className="bg-white rounded-xl shadow p-6">
+            <h3 className="text-lg font-semibold mb-2">Historical Consumption</h3>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={historicalData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis yAxisId="left" orientation="left" stroke="#f97316" />
+                <YAxis yAxisId="right" orientation="right" stroke="#4f46e5" />
+                <Tooltip />
+                <Legend />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="consumption"
+                  name="Consumption (kWh)"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  activeDot={{ r: 8 }}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="cost"
+                  name="Cost (₹)"
+                  stroke="#4f46e5"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
 
         {/* Features section */}
         <div className="bg-white rounded-xl shadow p-6">
@@ -304,12 +573,18 @@ export default function KriyetaApp() {
           </h1>
         </header>
         
-        {activeTab === 'dashboard' && renderDashboard()}
-        {activeTab === 'suggestions' && renderSuggestions()}
-        {activeTab === 'faqs' && renderFAQs()}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'dashboard' && renderDashboard()}
+            {activeTab === 'suggestions' && renderSuggestions()}
+            {activeTab === 'faqs' && renderFAQs()}
+          </>
+        )}
       </div>
     </div>
   );
 }
-
-

@@ -1,34 +1,52 @@
-import React, { useState } from "react";
+// src/components/ApplianceForm.jsx
+import React, { useState } from 'react';
 
-const ApplianceUsageForm = ({ onSubmit }) => {
-  const [overallUsage, setOverallUsage] = useState(0);
+const ApplianceForm = ({ onAdd }) => {
+  const [appliance, setAppliance] = useState({ name: '', hours: '', watts: '' });
 
   const handleChange = (e) => {
-    setOverallUsage(e.target.value);
+    setAppliance({ ...appliance, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (overallUsage > 0) {
-      onSubmit(overallUsage);
+  const handleAdd = () => {
+    if (appliance.name && appliance.hours && appliance.watts) {
+      onAdd(appliance);
+      setAppliance({ name: '', hours: '', watts: '' });
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col items-center space-y-4">
-      <label className="text-lg text-indigo-600">Enter Total Energy Usage for Today (in kWh)</label>
+    <div className="p-4 bg-white rounded shadow">
+      <h2 className="text-xl font-semibold mb-4">Add Appliance</h2>
+      <input
+        type="text"
+        name="name"
+        placeholder="Appliance Name"
+        value={appliance.name}
+        onChange={handleChange}
+        className="border p-2 mr-2"
+      />
       <input
         type="number"
-        value={overallUsage}
+        name="hours"
+        placeholder="Hours Used"
+        value={appliance.hours}
         onChange={handleChange}
-        className="px-4 py-2 border rounded-md text-center"
-        required
+        className="border p-2 mr-2"
       />
-      <button type="submit" className="px-6 py-3 bg-indigo-600 text-white rounded-md">
-        Calculate Appliance Usage
+      <input
+        type="number"
+        name="watts"
+        placeholder="Watts"
+        value={appliance.watts}
+        onChange={handleChange}
+        className="border p-2 mr-2"
+      />
+      <button onClick={handleAdd} className="bg-blue-500 text-white px-4 py-2 rounded">
+        Add
       </button>
-    </form>
+    </div>
   );
 };
 
-export default ApplianceUsageForm;
+export default ApplianceForm;
