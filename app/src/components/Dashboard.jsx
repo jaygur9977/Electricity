@@ -1,721 +1,202 @@
-// import React, { useEffect, useState } from "react";
-// import {
-//   LineChart,
-//   Line,
-//   BarChart,
-//   Bar,
-//   XAxis,
-//   YAxis,
-//   Tooltip,
-//   CartesianGrid,
-//   ResponsiveContainer,
-//   Legend
-// } from "recharts";
-
-// const taglines = [
-//   "Smart Energy, Simple Living",
-//   "Save Watts, Save Wallet",
-//   "Your Home. Smarter, Safer, Stronger",
-//   "Cut Costs, Not Comfort",
-//   "Energy Talks – In Your Language",
-//   "Power Smarter – With Every Hour",
-//   "Your Friendly Energy Guide – From Bulbs to Bills",
-//   "Beating Bills, One Appliance at a Time",
-//   "Energy Awareness Made Human",
-//   "Smarter Homes Start With Smarter Choices"
-// ];
-
-// const FeatureCard = ({ title, description, icon, color }) => {
-//   return (
-//     <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-100">
-//       <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center mb-4 text-white text-xl`}>
-//         {icon}
-//       </div>
-//       <h3 className="text-lg font-semibold text-gray-800 mb-2">{title}</h3>
-//       <p className="text-gray-600 text-sm">{description}</p>
-//     </div>
-//   );
-// };
-
-// const DataInputForm = ({ onSubmitConsumption, onSubmitWeekly }) => {
-//   const [date, setDate] = useState("");
-//   const [consumption, setConsumption] = useState("");
-//   const [cost, setCost] = useState("");
-//   const [weeklyData, setWeeklyData] = useState({
-//     weekStart: "",
-//     weekEnd: "",
-//     days: Array(7).fill().map((_, i) => ({
-//       day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
-//       consumption: 0,
-//       cost: 0
-//     }))
-//   });
-//   const [activeTab, setActiveTab] = useState('daily');
-
-//   const handleDailySubmit = (e) => {
-//     e.preventDefault();
-//     onSubmitConsumption({ date, consumption: parseFloat(consumption), cost: parseFloat(cost) });
-//     setDate("");
-//     setConsumption("");
-//     setCost("");
-//   };
-
-//   const handleWeeklySubmit = (e) => {
-//     e.preventDefault();
-//     onSubmitWeekly(weeklyData);
-//     setWeeklyData({
-//       weekStart: "",
-//       weekEnd: "",
-//       days: Array(7).fill().map((_, i) => ({
-//         day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
-//         consumption: 0,
-//         cost: 0
-//       }))
-//     });
-//   };
-
-//   const updateDayData = (index, field, value) => {
-//     const newDays = [...weeklyData.days];
-//     newDays[index][field] = parseFloat(value) || 0;
-//     setWeeklyData({ ...weeklyData, days: newDays });
-//   };
-
-//   return (
-//     <div className="bg-white rounded-xl shadow p-6 mb-6">
-//       <h3 className="text-lg font-semibold mb-4">Add Consumption Data</h3>
-//       <div className="flex space-x-4 mb-4">
-//         <button
-//           onClick={() => setActiveTab('daily')}
-//           className={`px-4 py-2 rounded ${activeTab === 'daily' ? 'bg-orange-700 text-white' : 'bg-gray-200'}`}
-//         >
-//           Daily Data
-//         </button>
-//         <button
-//           onClick={() => setActiveTab('weekly')}
-//           className={`px-4 py-2 rounded ${activeTab === 'weekly' ? 'bg-orange-700 text-white' : 'bg-gray-200'}`}
-//         >
-//           Weekly Data
-//         </button>
-//       </div>
-
-//       {activeTab === 'daily' ? (
-//         <form onSubmit={handleDailySubmit} className="space-y-4">
-//           <div>
-//             <label className="block text-gray-700 mb-1">Date</label>
-//             <input
-//               type="date"
-//               value={date}
-//               onChange={(e) => setDate(e.target.value)}
-//               className="w-full p-2 border border-gray-300 rounded"
-//               required
-//             />
-//           </div>
-//           <div>
-//             <label className="block text-gray-700 mb-1">Consumption (kWh)</label>
-//             <input
-//               type="number"
-//               step="0.01"
-//               value={consumption}
-//               onChange={(e) => setConsumption(e.target.value)}
-//               className="w-full p-2 border border-gray-300 rounded"
-//               required
-//             />
-//           </div>
-//           <div>
-//             <label className="block text-gray-700 mb-1">Cost (₹)</label>
-//             <input
-//               type="number"
-//               step="0.01"
-//               value={cost}
-//               onChange={(e) => setCost(e.target.value)}
-//               className="w-full p-2 border border-gray-300 rounded"
-//               required
-//             />
-//           </div>
-//           <button
-//             type="submit"
-//             className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition"
-//           >
-//             Add Daily Data
-//           </button>
-//         </form>
-//       ) : (
-//         <form onSubmit={handleWeeklySubmit} className="space-y-4">
-//           <div className="grid grid-cols-2 gap-4">
-//             <div>
-//               <label className="block text-gray-700 mb-1">Week Start Date</label>
-//               <input
-//                 type="date"
-//                 value={weeklyData.weekStart}
-//                 onChange={(e) => setWeeklyData({ ...weeklyData, weekStart: e.target.value })}
-//                 className="w-full p-2 border border-gray-300 rounded"
-//                 required
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-gray-700 mb-1">Week End Date</label>
-//               <input
-//                 type="date"
-//                 value={weeklyData.weekEnd}
-//                 onChange={(e) => setWeeklyData({ ...weeklyData, weekEnd: e.target.value })}
-//                 className="w-full p-2 border border-gray-300 rounded"
-//                 required
-//               />
-//             </div>
-//           </div>
-//           <div className="space-y-2">
-//             <h4 className="font-medium">Daily Consumption</h4>
-//             {weeklyData.days.map((day, index) => (
-//               <div key={day.day} className="grid grid-cols-3 gap-2 items-center">
-//                 <span className="font-medium">{day.day}</span>
-//                 <input
-//                   type="number"
-//                   step="0.01"
-//                   placeholder="kWh"
-//                   value={day.consumption}
-//                   onChange={(e) => updateDayData(index, 'consumption', e.target.value)}
-//                   className="p-2 border border-gray-300 rounded"
-//                 />
-//                 <input
-//                   type="number"
-//                   step="0.01"
-//                   placeholder="₹"
-//                   value={day.cost}
-//                   onChange={(e) => updateDayData(index, 'cost', e.target.value)}
-//                   className="p-2 border border-gray-300 rounded"
-//                 />
-//               </div>
-//             ))}
-//           </div>
-//           <button
-//             type="submit"
-//             className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition"
-//           >
-//             Add Weekly Data
-//           </button>
-//         </form>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default function KriyetaApp() {
-//   const [tagline, setTagline] = useState("");
-//   const [suggestion, setSuggestion] = useState("");
-//   const [responseMsg, setResponseMsg] = useState("");
-//   const [activeTab, setActiveTab] = useState('dashboard');
-//   const [period, setPeriod] = useState('weekly');
-//   const [historicalData, setHistoricalData] = useState([]);
-//   const [weeklyData, setWeeklyData] = useState([]);
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   useEffect(() => {
-//     const idx = Math.floor(Math.random() * taglines.length);
-//     setTagline(taglines[idx]);
-    
-//     // Load sample data initially
-//     const sampleHistoricalData = [
-//       { date: '2023-05-01', consumption: 12.5, cost: 85.0 },
-//       { date: '2023-05-02', consumption: 11.8, cost: 80.2 },
-//       { date: '2023-05-03', consumption: 13.2, cost: 89.7 },
-//       { date: '2023-05-04', consumption: 14.0, cost: 95.2 },
-//       { date: '2023-05-05', consumption: 10.5, cost: 71.4 },
-//       { date: '2023-05-06', consumption: 15.2, cost: 103.3 },
-//       { date: '2023-05-07', consumption: 12.8, cost: 87.0 },
-//     ];
-    
-//     const sampleWeeklyData = [{
-//       weekStart: '2023-05-01',
-//       weekEnd: '2023-05-07',
-//       days: [
-//         { day: 'Mon', consumption: 12.5, cost: 85.0 },
-//         { day: 'Tue', consumption: 11.8, cost: 80.2 },
-//         { day: 'Wed', consumption: 13.2, cost: 89.7 },
-//         { day: 'Thu', consumption: 14.0, cost: 95.2 },
-//         { day: 'Fri', consumption: 10.5, cost: 71.4 },
-//         { day: 'Sat', consumption: 15.2, cost: 103.3 },
-//         { day: 'Sun', consumption: 12.8, cost: 87.0 },
-//       ],
-//       totalConsumption: 90.0,
-//       totalCost: 611.8
-//     }];
-    
-//     setHistoricalData(sampleHistoricalData);
-//     setWeeklyData(sampleWeeklyData);
-//   }, []);
-
-//   const submitConsumptionData = (data) => {
-//     setIsLoading(true);
-//     setTimeout(() => {
-//       const newData = {
-//         ...data,
-//         date: data.date || new Date().toISOString().split('T')[0]
-//       };
-//       setHistoricalData([...historicalData, newData]);
-//       setIsLoading(false);
-//     }, 500);
-//   };
-
-//   const submitWeeklyData = (data) => {
-//     setIsLoading(true);
-//     setTimeout(() => {
-//       const totalConsumption = data.days.reduce((sum, day) => sum + day.consumption, 0);
-//       const totalCost = data.days.reduce((sum, day) => sum + day.cost, 0);
-      
-//       const newWeeklyData = {
-//         ...data,
-//         totalConsumption,
-//         totalCost
-//       };
-      
-//       setWeeklyData([newWeeklyData, ...weeklyData]);
-//       setIsLoading(false);
-//     }, 500);
-//   };
-
-//   const submitSuggestion = () => {
-//     if (suggestion.trim()) {
-//       setResponseMsg("Thanks for your suggestion!");
-//       setSuggestion("");
-//     } else {
-//       setResponseMsg("Please enter a suggestion before submitting.");
-//     }
-//   };
-
-//   const renderDashboard = () => {
-//     const costPredictionData = period === 'weekly'
-//       ? [
-//           { name: 'Current Week', cost: weeklyData[0]?.totalCost || 0 },
-//           { name: 'Target Week', cost: (weeklyData[0]?.totalCost || 0) * 0.85 }
-//         ]
-//       : [
-//           { name: 'Current Month', cost: historicalData.reduce((sum, item) => sum + item.cost, 0) },
-//           { name: 'Target Month', cost: historicalData.reduce((sum, item) => sum + item.cost, 0) * 0.85 }
-//         ];
-
-//     return (
-//       <div className="p-6 space-y-6">
-//         {/* Tagline banner */}
-//         <div className="bg-orange-600 text-white py-3 px-4 rounded-lg text-center">
-//           <p className="font-medium">{tagline}</p>
-//         </div>
-
-//         {/* Data Input Form */}
-//         <DataInputForm 
-//           onSubmitConsumption={submitConsumptionData} 
-//           onSubmitWeekly={submitWeeklyData} 
-//         />
-
-//         {/* Period selector */}
-//         <div className="flex space-x-4">
-//           <button
-//             onClick={() => setPeriod('weekly')}
-//             className={`px-4 py-2 rounded ${period === 'weekly' ? 'bg-orange-700 text-white' : 'bg-gray-200'}`}
-//           >
-//             Weekly
-//           </button>
-//           <button
-//             onClick={() => setPeriod('monthly')}
-//             className={`px-4 py-2 rounded ${period === 'monthly' ? 'bg-orange-700 text-white' : 'bg-gray-200'}`}
-//           >
-//             Monthly
-//           </button>
-//         </div>
-
-//         {/* Charts section */}
-//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//           <div className="bg-white rounded-xl shadow p-6">
-//             <h3 className="text-lg font-semibold mb-2">
-//               {period === 'weekly' ? 'Weekly' : 'Monthly'} Consumption
-//             </h3>
-//             <ResponsiveContainer width="100%" height={300}>
-//               <LineChart
-//                 data={period === 'weekly' 
-//                   ? weeklyData[0]?.days || [] 
-//                   : historicalData.slice(-30) // Last 30 days
-//                 }
-//               >
-//                 <CartesianGrid strokeDasharray="3 3" />
-//                 <XAxis dataKey={period === 'weekly' ? 'day' : 'date'} />
-//                 <YAxis />
-//                 <Tooltip />
-//                 <Legend />
-//                 <Line 
-//                   type="monotone" 
-//                   dataKey="consumption" 
-//                   name="Consumption (kWh)"
-//                   stroke="#f97316" 
-//                   strokeWidth={2} 
-//                   activeDot={{ r: 8 }} 
-//                 />
-//                 <Line 
-//                   type="monotone" 
-//                   dataKey="cost" 
-//                   name="Cost (₹)"
-//                   stroke="#4f46e5" 
-//                   strokeWidth={2} 
-//                 />
-//               </LineChart>
-//             </ResponsiveContainer>
-//           </div>
-
-//           <div className="bg-white rounded-xl shadow p-6">
-//             <h3 className="text-lg font-semibold mb-2">Cost Prediction vs Goal</h3>
-//             <ResponsiveContainer width="100%" height={300}>
-//               <BarChart data={costPredictionData}>
-//                 <CartesianGrid strokeDasharray="3 3" />
-//                 <XAxis dataKey="name" />
-//                 <YAxis />
-//                 <Tooltip />
-//                 <Legend />
-//                 <Bar 
-//                   dataKey="cost" 
-//                   name="Cost (₹)"
-//                   fill="#f97316" 
-//                   barSize={30} 
-//                   radius={[5, 5, 0, 0]} 
-//                 />
-//               </BarChart>
-//             </ResponsiveContainer>
-//           </div>
-//         </div>
-
-//         {/* Historical Data Chart */}
-//         {historicalData.length > 0 && (
-//           <div className="bg-white rounded-xl shadow p-6">
-//             <h3 className="text-lg font-semibold mb-2">Historical Consumption</h3>
-//             <ResponsiveContainer width="100%" height={400}>
-//               <LineChart data={historicalData}>
-//                 <CartesianGrid strokeDasharray="3 3" />
-//                 <XAxis dataKey="date" />
-//                 <YAxis yAxisId="left" orientation="left" stroke="#f97316" />
-//                 <YAxis yAxisId="right" orientation="right" stroke="#4f46e5" />
-//                 <Tooltip />
-//                 <Legend />
-//                 <Line
-//                   yAxisId="left"
-//                   type="monotone"
-//                   dataKey="consumption"
-//                   name="Consumption (kWh)"
-//                   stroke="#f97316"
-//                   strokeWidth={2}
-//                   activeDot={{ r: 8 }}
-//                 />
-//                 <Line
-//                   yAxisId="right"
-//                   type="monotone"
-//                   dataKey="cost"
-//                   name="Cost (₹)"
-//                   stroke="#4f46e5"
-//                   strokeWidth={2}
-//                 />
-//               </LineChart>
-//             </ResponsiveContainer>
-//           </div>
-//         )}
-
-//         {/* Features section */}
-//         <div className="bg-white rounded-xl shadow p-6">
-//           <h3 className="text-lg font-semibold mb-4">Energy Management Features</h3>
-//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-//             <FeatureCard
-//               title="Bill Prediction"
-//               description="Accurate monthly electricity cost forecasts based on your appliance usage patterns."
-//               icon="📊"
-//               color="bg-blue-500"
-//             />
-//             <FeatureCard
-//               title="Fault Detection"
-//               description="Identify malfunctioning appliances through abnormal energy consumption patterns."
-//               icon="⚠️"
-//               color="bg-red-500"
-//             />
-//             <FeatureCard
-//               title="Energy Savings"
-//               description="Personalized recommendations to reduce your monthly electricity bills."
-//               icon="💰"
-//               color="bg-green-500"
-//             />
-//             <FeatureCard
-//               title="Usage Alerts"
-//               description="Real-time notifications for unusual consumption or warranty expirations."
-//               icon="🔔"
-//               color="bg-yellow-500"
-//             />
-//             <FeatureCard
-//               title="Appliance Insights"
-//               description="Detailed breakdown of each appliance's contribution to your total bill."
-//               icon="🔌"
-//               color="bg-purple-500"
-//             />
-//             <FeatureCard
-//               title="Multi-Language"
-//               description="Voice commands and interface available in regional languages."
-//               icon="🌐"
-//               color="bg-teal-500"
-//             />
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   const renderSuggestions = () => (
-//     <div className="p-6 max-w-2xl mx-auto">
-//       <h2 className="text-2xl font-semibold mb-4">Drop your suggestion here 👇</h2>
-//       <textarea
-//         value={suggestion}
-//         onChange={(e) => setSuggestion(e.target.value)}
-//         rows={4}
-//         className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:border-orange-700"
-//         placeholder="Your suggestion..."
-//       />
-//       <button
-//         onClick={submitSuggestion}
-//         className="mt-4 bg-orange-700 text-white px-6 py-2 rounded hover:bg-orange-800 transition"
-//       >
-//         Submit
-//       </button>
-//       {responseMsg && (
-//         <p className={`mt-4 font-medium ${responseMsg.startsWith("Thanks") ? "text-green-600" : "text-red-500"}`}>
-//           {responseMsg}
-//         </p>
-//       )}
-//     </div>
-//   );
-
-//   const renderFAQs = () => {
-//     const faqs = [
-//       { 
-//         q: "What is this Smart AI Assistant for?", 
-//         a: "It helps households reduce electricity bills, track appliance usage, get servicing alerts, and receive energy-saving tips using AI-powered insights." 
-//       },
-//       { 
-//         q: "How does the cost prediction work?", 
-//         a: "Our advanced algorithms analyze your appliance usage patterns, local electricity rates, and historical data to provide accurate monthly cost estimates." 
-//       },
-//       { 
-//         q: "What information do I need to provide?", 
-//         a: "Just basic details like appliance name, brand, daily usage hours, and warranty or guarantee expiry date. We make the process simple and intuitive." 
-//       },
-//       { 
-//         q: "Can I use this in my local language?", 
-//         a: "Yes! The assistant supports multiple languages including Hindi, Tamil, Bengali and more through our advanced language processing system." 
-//       },
-//       { 
-//         q: "Will I get alerts for warranty or high energy use?", 
-//         a: "Absolutely. You'll receive timely alerts before warranty expiry and if any appliance exceeds safe consumption limits based on BEE ratings." 
-//       },
-//       { 
-//         q: "How do I track my past electricity bills?", 
-//         a: "You can upload meter readings or past bills manually. The system will then analyze usage trends and give insights." 
-//       }
-//     ];
-
-//     return (
-//       <div className="p-6 max-w-3xl mx-auto">
-//         <h1 className="text-3xl font-bold text-center mb-6">Frequently Asked Questions</h1>
-//         <div className="space-y-4">
-//           {faqs.map((f, i) => (
-//             <div key={i} className="border rounded-lg overflow-hidden">
-//               <button
-//                 className="w-full flex justify-between items-center px-6 py-4 bg-gray-50 hover:bg-gray-100 font-semibold focus:outline-none"
-//                 onClick={() => document.getElementById(`faq-${i}`).classList.toggle('hidden')}
-//               >
-//                 <span className="text-left">{f.q}</span>
-//                 <span className="text-orange-600">+</span>
-//               </button>
-//               <div id={`faq-${i}`} className="hidden px-6 py-4 bg-white">
-//                 {f.a}
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <div className="flex min-h-screen bg-gray-100">
-//       {/* Sidebar */}
-//       <nav className="w-64 bg-white shadow-lg flex flex-col">
-//         <div className="p-6 border-b">
-//           <h2 className="text-xl font-bold text-orange-700">Kriyeta Energy</h2>
-//         </div>
-//         <ul className="flex-1">
-//           {[
-//             { id: 'dashboard', label: 'Dashboard' },
-//             { id: 'suggestions', label: 'Suggestions' },
-//             { id: 'faqs', label: 'FAQs' }
-//           ].map((tab) => (
-//             <li key={tab.id}>
-//               <button
-//                 onClick={() => setActiveTab(tab.id)}
-//                 className={`w-full text-left px-6 py-4 hover:bg-orange-50 transition ${
-//                   activeTab === tab.id ? 'bg-orange-50 text-orange-700 font-semibold border-r-4 border-orange-700' : 'text-gray-700'
-//                 }`}
-//               >
-//                 {tab.label}
-//               </button>
-//             </li>
-//           ))}
-//         </ul>
-//         <div className="p-4 border-t text-sm text-gray-500">
-//           <p>v1.0.0</p>
-//         </div>
-//       </nav>
-
-//       {/* Main Content */}
-//       <div className="flex-1 overflow-auto">
-//         <header className="bg-white shadow-sm p-4">
-//           <h1 className="text-xl font-semibold text-gray-800">
-//             {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-//           </h1>
-//         </header>
-        
-//         {isLoading ? (
-//           <div className="flex justify-center items-center h-64">
-//             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-//           </div>
-//         ) : (
-//           <>
-//             {activeTab === 'dashboard' && renderDashboard()}
-//             {activeTab === 'suggestions' && renderSuggestions()}
-//             {activeTab === 'faqs' && renderFAQs()}
-//           </>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
 import React, { useState, useEffect } from 'react';
-import { Line, Bar } from 'react-chartjs-2';
+import { Line, Bar, Pie } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
+import { FiActivity, FiTrendingUp, FiCalendar, FiHome, FiClock, FiAlertCircle, FiDollarSign } from 'react-icons/fi';
 Chart.register(...registerables);
 
 const UsageDashboard = () => {
-  // Sample initial data - replace with your actual data
-  const initialMonthlyData = [
-    { month: 'January', units: 320, days: 31 },
-    { month: 'February', units: 280, days: 28 },
-    { month: 'March', units: 310, days: 31 },
-    { month: 'April', units: 290, days: 30 },
-    { month: 'May', units: 350, days: 31 },
-    { month: 'June', units: 400, days: 30 }
+  // Sample initial data
+  const initialData = [
+    { 
+      month: 'January 2023', 
+      days: 31,
+      totalUnits: 320, 
+      totalCost: 2400,
+      weeks: [
+        { week: 1, days: 7, units: 70, cost: 525, peakDay: 3 },
+        { week: 2, days: 7, units: 75, cost: 562.5, peakDay: 5 },
+        { week: 3, days: 7, units: 80, cost: 600, peakDay: 6 },
+        { week: 4, days: 7, units: 75, cost: 562.5, peakDay: 2 },
+        { week: 5, days: 3, units: 20, cost: 150, peakDay: 1 }
+      ]
+    },
+    { 
+      month: 'February 2023', 
+      days: 28,
+      totalUnits: 280, 
+      totalCost: 2100,
+      weeks: [
+        { week: 1, days: 7, units: 65, cost: 487.5, peakDay: 4 },
+        { week: 2, days: 7, units: 70, cost: 525, peakDay: 6 },
+        { week: 3, days: 7, units: 75, cost: 562.5, peakDay: 5 },
+        { week: 4, days: 7, units: 70, cost: 525, peakDay: 3 }
+      ]
+    },
+    { 
+      month: 'March 2023', 
+      days: 31,
+      totalUnits: 310, 
+      totalCost: 2325,
+      weeks: [
+        { week: 1, days: 7, units: 75, cost: 562.5, peakDay: 6 },
+        { week: 2, days: 7, units: 70, cost: 525, peakDay: 3 },
+        { week: 3, days: 7, units: 80, cost: 600, peakDay: 5 },
+        { week: 4, days: 7, units: 65, cost: 487.5, peakDay: 2 },
+        { week: 5, days: 3, units: 20, cost: 150, peakDay: 1 }
+      ]
+    },
+    { 
+      month: 'April 2023', 
+      days: 30,
+      totalUnits: 290, 
+      totalCost: 2175,
+      weeks: [
+        { week: 1, days: 7, units: 70, cost: 525, peakDay: 5 },
+        { week: 2, days: 7, units: 65, cost: 487.5, peakDay: 3 },
+        { week: 3, days: 7, units: 75, cost: 562.5, peakDay: 6 },
+        { week: 4, days: 7, units: 70, cost: 525, peakDay: 4 },
+        { week: 5, days: 2, units: 10, cost: 75, peakDay: 1 }
+      ]
+    },
+    { 
+      month: 'May 2023', 
+      days: 31,
+      totalUnits: 350, 
+      totalCost: 2625,
+      weeks: [
+        { week: 1, days: 7, units: 80, cost: 600, peakDay: 6 },
+        { week: 2, days: 7, units: 85, cost: 637.5, peakDay: 5 },
+        { week: 3, days: 7, units: 90, cost: 675, peakDay: 7 },
+        { week: 4, days: 7, units: 75, cost: 562.5, peakDay: 3 },
+        { week: 5, days: 3, units: 20, cost: 150, peakDay: 1 }
+      ]
+    },
+    { 
+      month: 'June 2023', 
+      days: 30,
+      totalUnits: 400, 
+      totalCost: 3000,
+      weeks: [
+        { week: 1, days: 7, units: 90, cost: 675, peakDay: 6 },
+        { week: 2, days: 7, units: 95, cost: 712.5, peakDay: 5 },
+        { week: 3, days: 7, units: 105, cost: 787.5, peakDay: 7 },
+        { week: 4, days: 7, units: 90, cost: 675, peakDay: 4 },
+        { week: 5, days: 2, units: 20, cost: 150, peakDay: 1 }
+      ]
+    }
   ];
 
-  const [monthlyData, setMonthlyData] = useState(initialMonthlyData);
-  const [selectedMonth, setSelectedMonth] = useState(initialMonthlyData[initialMonthlyData.length - 1]);
-  const [dailyData, setDailyData] = useState([]);
-  const [weeklyData, setWeeklyData] = useState([]);
+  const [data, setData] = useState(initialData);
+  const [selectedMonth, setSelectedMonth] = useState(initialData[initialData.length - 1]);
+  const [selectedWeek, setSelectedWeek] = useState(initialData[initialData.length - 1].weeks[0]);
+  const [viewMode, setViewMode] = useState('monthly'); // 'monthly' or 'weekly'
+  const [ratePerUnit, setRatePerUnit] = useState(7.5); // ₹ per kWh
 
-  // Generate random daily usage pattern (replace with actual data)
-  const generateDailyData = (month) => {
-    const daysInMonth = month.days;
-    const avgDailyUsage = month.units / daysInMonth;
-    
-    // Create realistic daily variations
+  // Generate daily data for the selected week
+  const generateDailyData = (week) => {
+    const avgDailyUsage = week.units / week.days;
     const daily = [];
-    for (let i = 1; i <= daysInMonth; i++) {
-      // Weekends typically have higher usage
-      const dayOfWeek = new Date(2023, initialMonthlyData.findIndex(m => m.month === month.month), i).getDay();
+    
+    for (let i = 1; i <= week.days; i++) {
+      const dayOfWeek = new Date().getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
       
-      // Base value with some randomness
-      let usage = avgDailyUsage * (0.9 + Math.random() * 0.2);
-      
-      // Increase usage on weekends
-      if (isWeekend) {
-        usage *= 1.3;
-      }
-      
-      // Special days (like holidays might have different patterns)
-      if (i === 1 || i === 15) {
-        usage *= 0.8; // Lower usage on 1st and 15th (just as example)
-      }
+      let usage = avgDailyUsage * (0.8 + Math.random() * 0.4);
+      if (i === week.peakDay) usage *= 1.5;
+      if (isWeekend) usage *= 1.3;
       
       daily.push({
         day: i,
-        date: `${i}/${month.month.substring(0, 3)}`,
-
+        date: `${i}/${selectedMonth.month.split(' ')[0].substring(0, 3)}`,
         units: parseFloat(usage.toFixed(2)),
-        isWeekend
+        cost: parseFloat((usage * ratePerUnit).toFixed(2)),
+        isWeekend,
+        isPeak: i === week.peakDay
       });
     }
-    setDailyData(daily);
     
-    // Generate weekly aggregation
-    const weekly = [];
-    let weekStart = 1;
-    while (weekStart <= daysInMonth) {
-      const weekEnd = Math.min(weekStart + 6, daysInMonth);
-      const weekDays = daily.slice(weekStart - 1, weekEnd);
-      const weekUnits = weekDays.reduce((sum, day) => sum + day.units, 0);
-      
-      weekly.push({
-        week: weekly.length + 1,
-        label: `Week ${weekly.length + 1} (${weekStart}-${weekEnd})`,
-        units: parseFloat(weekUnits.toFixed(2)),
-        days: weekDays
-      });
-      
-      
-      weekStart = weekEnd + 1;
-    }
-    setWeeklyData(weekly);
+    return daily;
   };
 
+  const [dailyData, setDailyData] = useState(generateDailyData(selectedWeek));
+
   useEffect(() => {
-    generateDailyData(selectedMonth);
-  }, [selectedMonth]);
+    setDailyData(generateDailyData(selectedWeek));
+  }, [selectedWeek, selectedMonth]);
 
   // Chart data for monthly trends
-  const monthlyChartData = {
-    labels: monthlyData.map(m => m.month),
+  const monthlyTrendsData = {
+    labels: data.map(m => m.month.split(' ')[0]),
     datasets: [
       {
-        label: 'Monthly Consumption (kWh)',
-        data: monthlyData.map(m => m.units),
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgba(54, 162, 235, 1)',
+        label: 'Consumption (kWh)',
+        data: data.map(m => m.totalUnits),
+        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+        borderColor: 'rgba(99, 102, 241, 1)',
         borderWidth: 2,
-        tension: 0.1
+        tension: 0.3,
+        yAxisID: 'y'
+      },
+      {
+        label: 'Cost (₹)',
+        data: data.map(m => m.totalCost),
+        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+        borderColor: 'rgba(16, 185, 129, 1)',
+        borderWidth: 2,
+        tension: 0.3,
+        yAxisID: 'y1'
       }
     ]
   };
 
-  // Chart data for daily usage
-  const dailyChartData = {
+  // Weekly breakdown for selected month
+  const weeklyBreakdownData = {
+    labels: selectedMonth.weeks.map(w => `Week ${w.week}`),
+    datasets: [
+      {
+        label: 'Weekly Consumption (kWh)',
+        data: selectedMonth.weeks.map(w => w.units),
+        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+        borderColor: 'rgba(245, 158, 11, 1)',
+        borderWidth: 2
+      }
+    ]
+  };
+
+  // Daily usage for selected week
+  const dailyUsageData = {
     labels: dailyData.map(d => d.date),
     datasets: [
       {
         label: 'Daily Usage (kWh)',
         data: dailyData.map(d => d.units),
         backgroundColor: dailyData.map(d => 
-          d.isWeekend ? 'rgba(255, 99, 132, 0.2)' : 'rgba(75, 192, 192, 0.2)'
+          d.isPeak ? 'rgba(239, 68, 68, 0.5)' : 
+          d.isWeekend ? 'rgba(249, 115, 22, 0.5)' : 'rgba(59, 130, 246, 0.5)'
         ),
         borderColor: dailyData.map(d => 
-          d.isWeekend ? 'rgba(255, 99, 132, 1)' : 'rgba(75, 192, 192, 1)'
+          d.isPeak ? 'rgba(239, 68, 68, 1)' : 
+          d.isWeekend ? 'rgba(249, 115, 22, 1)' : 'rgba(59, 130, 246, 1)'
         ),
-        borderWidth: 1,
-        fill: true
+        borderWidth: 1
       }
     ]
   };
 
-  // Chart data for weekly usage
-  const weeklyChartData = {
-    labels: weeklyData.map(w => w.label),
+  // Consumption distribution
+  const consumptionDistributionData = {
+    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'].slice(0, selectedMonth.weeks.length),
     datasets: [
       {
-        label: 'Weekly Consumption (kWh)',
-        data: weeklyData.map(w => w.units),
-        backgroundColor: 'rgba(153, 102, 255, 0.2)',
-        borderColor: 'rgba(153, 102, 255, 1)',
-        borderWidth: 2
+        data: selectedMonth.weeks.map(w => w.units),
+        backgroundColor: [
+          'rgba(99, 102, 241, 0.7)',
+          'rgba(245, 158, 11, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(239, 68, 68, 0.7)',
+          'rgba(139, 92, 246, 0.7)'
+        ],
+        borderWidth: 1
       }
     ]
   };
@@ -724,216 +205,406 @@ const UsageDashboard = () => {
   const handleAddMonth = (e) => {
     e.preventDefault();
     const form = e.target;
+    const weeks = [];
+    const totalUnits = parseFloat(form.units.value);
+    const days = parseInt(form.days.value);
+    
+    // Generate weekly data
+    let remainingUnits = totalUnits;
+    let weekCount = Math.ceil(days / 7);
+    
+    for (let i = 1; i <= weekCount; i++) {
+      const weekDays = i < weekCount ? 7 : days % 7 || 7;
+      const weekUnits = i < weekCount ? 
+        parseFloat((totalUnits / weekCount * (0.9 + Math.random() * 0.2)).toFixed(2)) : 
+        parseFloat(remainingUnits).toFixed(2);
+      
+      weeks.push({
+        week: i,
+        days: weekDays,
+        units: parseFloat(weekUnits),
+        cost: parseFloat((weekUnits * ratePerUnit).toFixed(2)),
+        peakDay: Math.floor(Math.random() * weekDays) + 1
+      });
+      
+      remainingUnits -= parseFloat(weekUnits);
+    }
+    
     const newMonth = {
       month: form.month.value,
-      units: parseFloat(form.units.value),
-      days: parseInt(form.days.value)
+      days: days,
+      totalUnits: totalUnits,
+      totalCost: parseFloat((totalUnits * ratePerUnit).toFixed(2)),
+      weeks: weeks
     };
     
-    setMonthlyData([...monthlyData, newMonth]);
+    setData([...data, newMonth]);
+    setSelectedMonth(newMonth);
+    setSelectedWeek(newMonth.weeks[0]);
     form.reset();
   };
 
+  // Calculate savings opportunity
+  const calculateSavings = () => {
+    const avg = data.reduce((sum, month) => sum + month.totalUnits, 0) / data.length;
+    const current = selectedMonth.totalUnits;
+    const potential = current * 0.85; // 15% savings
+    return {
+      current,
+      potential,
+      savings: current - potential,
+      savingsCost: (current - potential) * ratePerUnit
+    };
+  };
+
+  const savingsData = calculateSavings();
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Electricity Usage Analytics</h1>
+        {/* Header */}
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Electricity Usage Analytics</h1>
+          <p className="text-gray-600">Track and optimize your energy consumption</p>
+        </header>
         
-        {/* Month Selector */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Select Month</h2>
-          <div className="flex flex-wrap gap-2">
-            {monthlyData.map((month) => (
-              <button
-                key={month.month}
-                onClick={() => setSelectedMonth(month)}
-                className={`px-4 py-2 rounded-md ${
-                  selectedMonth.month === month.month
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                {month.month}
-              </button>
-            ))}
+        {/* View Mode Toggle */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setViewMode('monthly')}
+              className={`px-4 py-2 rounded-md flex items-center space-x-2 ${
+                viewMode === 'monthly' 
+                  ? 'bg-indigo-600 text-white' 
+                  : 'bg-white text-gray-700 border border-gray-300'
+              }`}
+            >
+              <FiCalendar />
+              <span>Monthly View</span>
+            </button>
+            <button
+              onClick={() => setViewMode('weekly')}
+              className={`px-4 py-2 rounded-md flex items-center space-x-2 ${
+                viewMode === 'weekly' 
+                  ? 'bg-indigo-600 text-white' 
+                  : 'bg-white text-gray-700 border border-gray-300'
+              }`}
+            >
+              <FiClock />
+              <span>Weekly View</span>
+            </button>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">Rate:</span>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600">₹</span>
+              <input
+                type="number"
+                value={ratePerUnit}
+                onChange={(e) => setRatePerUnit(parseFloat(e.target.value))}
+                step="0.1"
+                min="1"
+                className="pl-8 w-20 py-1 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            <span className="text-sm text-gray-600">per kWh</span>
           </div>
         </div>
         
-        {/* Current Month Summary */}
+        {/* Month/Week Selector */}
+        <div className="bg-white rounded-xl shadow p-4 mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Select {viewMode === 'monthly' ? 'Month' : 'Week'}</h2>
+          
+          {viewMode === 'monthly' ? (
+            <div className="flex flex-wrap gap-2">
+              {data.map((month) => (
+                <button
+                  key={month.month}
+                  onClick={() => {
+                    setSelectedMonth(month);
+                    setSelectedWeek(month.weeks[0]);
+                  }}
+                  className={`px-4 py-2 rounded-lg flex flex-col items-center ${
+                    selectedMonth.month === month.month
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className="font-medium">{month.month.split(' ')[0]}</span>
+                  <span className="text-xs">{month.totalUnits}kWh</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {selectedMonth.weeks.map((week) => (
+                <button
+                  key={week.week}
+                  onClick={() => setSelectedWeek(week)}
+                  className={`px-4 py-2 rounded-lg flex flex-col items-center ${
+                    selectedWeek.week === week.week
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className="font-medium">Week {week.week}</span>
+                  <span className="text-xs">{week.units}kWh</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow p-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Selected Month</h3>
-            <p className="text-2xl font-bold text-blue-600">{selectedMonth.month}</p>
-            <p className="text-gray-500">{selectedMonth.days} days</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Consumption</h3>
-            <p className="text-2xl font-bold text-green-600">{selectedMonth.units} kWh</p>
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-gray-500 font-medium">Total Consumption</h3>
+              <FiActivity className="text-indigo-500" />
+            </div>
+            <p className="text-3xl font-bold text-gray-800">
+              {viewMode === 'monthly' ? selectedMonth.totalUnits : selectedWeek.units} kWh
+            </p>
             <p className="text-gray-500">
-              Avg: {(selectedMonth.units / selectedMonth.days).toFixed(2)} kWh/day
+              {viewMode === 'monthly' ? 
+                `${(selectedMonth.totalUnits / selectedMonth.days).toFixed(2)} kWh/day` : 
+                `${(selectedWeek.units / selectedWeek.days).toFixed(2)} kWh/day`}
             </p>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Comparison</h3>
-            <p className="text-gray-600">
-              {selectedMonth.units > monthlyData[monthlyData.length - 2].units ? (
-                <span className="text-red-600 font-medium">
-                  ↑ {(selectedMonth.units - monthlyData[monthlyData.length - 2].units)} kWh from last month
-                </span>
-              ) : (
-                <span className="text-green-600 font-medium">
-                  ↓ {(monthlyData[monthlyData.length - 2].units - selectedMonth.units)} kWh from last month
-                </span>
-              )}
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-gray-500 font-medium">Total Cost</h3>
+              <FiDollarSign className="text-green-500" />
+            </div>
+            <p className="text-3xl font-bold text-gray-800">
+              ₹{viewMode === 'monthly' ? selectedMonth.totalCost : selectedWeek.cost}
+            </p>
+            <p className="text-gray-500">
+              {viewMode === 'monthly' ? 
+                `₹${(selectedMonth.totalCost / selectedMonth.days).toFixed(2)}/day` : 
+                `₹${(selectedWeek.cost / selectedWeek.days).toFixed(2)}/day`}
+            </p>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-gray-500 font-medium">Savings Opportunity</h3>
+              <FiTrendingUp className="text-orange-500" />
+            </div>
+            <p className="text-3xl font-bold text-gray-800">
+              ₹{viewMode === 'monthly' ? savingsData.savingsCost.toFixed(2) : (savingsData.savingsCost / 4).toFixed(2)}
+            </p>
+            <p className="text-gray-500">
+              {viewMode === 'monthly' ? 
+                `${savingsData.savings.toFixed(2)} kWh (15%) possible` : 
+                `${(savingsData.savings / 4).toFixed(2)} kWh possible`}
             </p>
           </div>
         </div>
         
-        {/* Charts Section */}
+        {/* Main Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white rounded-lg shadow p-4">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Monthly Trends</h2>
-            <div className="h-64">
-  <Line
-    data={monthlyChartData}
-    options={{
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top' },
-        tooltip: {
-          callbacks: {
-            label: (context) => `${context.dataset.label}: ${context.raw} kWh`
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: false,
-          title: { display: true, text: 'kWh' }
-        }
-      }
-    }}
-  />
-</div>
-
+          {/* Monthly Trends */}
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">Monthly Trends</h2>
+              <div className="flex space-x-2">
+                <button className="px-2 py-1 text-xs bg-indigo-100 text-indigo-700 rounded">Consumption</button>
+                <button className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Cost</button>
+              </div>
+            </div>
+            <div className="h-72">
+              <Line
+                data={monthlyTrendsData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => {
+                          return context.datasetIndex === 0 ? 
+                            `${context.dataset.label}: ${context.raw} kWh` : 
+                            `${context.dataset.label}: ₹${context.raw}`;
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    y: {
+                      type: 'linear',
+                      display: true,
+                      position: 'left',
+                      title: { display: true, text: 'kWh' }
+                    },
+                    y1: {
+                      type: 'linear',
+                      display: true,
+                      position: 'right',
+                      title: { display: true, text: '₹' },
+                      grid: { drawOnChartArea: false }
+                    }
+                  }
+                }}
+              />
+            </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-4">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">Weekly Breakdown - {selectedMonth.month}</h2>
-            <div className="h-64">
-  <Bar
-    data={weeklyChartData}
-    options={{
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top' },
-        tooltip: {
-          callbacks: {
-            label: (context) => `${context.dataset.label}: ${context.raw} kWh`
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: 'kWh' }
-        }
-      }
-    }}
-  />
-</div>
-
+          {/* Weekly Breakdown */}
+          <div className="bg-white rounded-xl shadow p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">
+                {viewMode === 'monthly' ? 'Weekly Breakdown' : 'Daily Usage'} - {selectedMonth.month.split(' ')[0]}
+              </h2>
+              {viewMode === 'weekly' && (
+                <div className="text-sm text-gray-500">
+                  Week {selectedWeek.week} ({selectedWeek.days} days)
+                </div>
+              )}
+            </div>
+            <div className="h-72">
+              {viewMode === 'monthly' ? (
+                <Bar
+                  data={weeklyBreakdownData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { position: 'top' },
+                      tooltip: {
+                        callbacks: {
+                          label: (context) => `${context.dataset.label}: ${context.raw} kWh`
+                        }
+                      }
+                    }
+                  }}
+                />
+              ) : (
+                <Bar
+                  data={dailyUsageData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        callbacks: {
+                          label: (context) => `${context.dataset.label}: ${context.raw} kWh (₹${dailyData[context.dataIndex].cost})`,
+                          footer: (items) => {
+                            const day = dailyData[items[0].dataIndex];
+                            if (day.isPeak) return 'Peak Usage Day';
+                            if (day.isWeekend) return 'Weekend Day';
+                            return 'Weekday';
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
         
-        {/* Daily Usage Section */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Daily Usage - {selectedMonth.month}</h2>
-          <div className="h-96 mb-6">
-  <Line
-    data={dailyChartData}
-    options={{
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top' },
-        tooltip: {
-          callbacks: {
-            label: (context) => `${context.dataset.label}: ${context.raw} kWh`
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: false,
-          title: { display: true, text: 'kWh' }
-        }
-      }
-    }}
-  />
-</div>
-
+        {/* Additional Insights Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Consumption Distribution */}
+          <div className="bg-white rounded-xl shadow p-4">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              {selectedMonth.month.split(' ')[0]} Consumption Distribution
+            </h2>
+            <div className="h-64">
+              <Pie
+                data={consumptionDistributionData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { position: 'right' },
+                    tooltip: {
+                      callbacks: {
+                        label: (context) => {
+                          const total = selectedMonth.totalUnits;
+                          const value = context.raw;
+                          const percentage = Math.round((value / total) * 100);
+                          return `${context.label}: ${value}kWh (${percentage}%)`;
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
           
-          <h3 className="text-lg font-semibold text-gray-700 mb-3">Daily Details</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usage (kWh)</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variation</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {dailyData.map((day) => {
-                  const avg = selectedMonth.units / selectedMonth.days;
-                  const variation = ((day.units - avg) / avg * 100);
-                  
-                  return (
-                    <tr key={day.day}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{day.date}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {day.isWeekend ? 'Weekend' : 'Weekday'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{day.units}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`font-medium ${
-                          variation > 0 ? 'text-red-600' : 'text-green-600'
-                        }`}>
-                          {variation > 0 ? '+' : ''}{variation.toFixed(1)}%
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          {/* Savings Tips */}
+          <div className="bg-white rounded-xl shadow p-4 lg:col-span-2">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Savings Recommendations</h2>
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                  <FiHome className="text-lg" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-800">Peak Usage Reduction</h3>
+                  <p className="text-gray-600 text-sm">
+                    Your peak usage occurs on {dailyData.find(d => d.isPeak)?.date || 'Weekend days'}. 
+                    Consider shifting high-consumption activities to off-peak hours.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="p-2 bg-green-100 text-green-600 rounded-lg">
+                  <FiAlertCircle className="text-lg" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-800">Appliance Efficiency</h3>
+                  <p className="text-gray-600 text-sm">
+                    You could save ₹{viewMode === 'monthly' ? savingsData.savingsCost.toFixed(2) : (savingsData.savingsCost / 4).toFixed(2)} 
+                    this {viewMode === 'monthly' ? 'month' : 'week'} by improving appliance efficiency by 15%.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                  <FiTrendingUp className="text-lg" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-800">Comparative Analysis</h3>
+                  <p className="text-gray-600 text-sm">
+                    Your {viewMode === 'monthly' ? 'monthly' : 'weekly'} consumption is {selectedMonth.totalUnits > data[data.length - 2].totalUnits ? 'higher' : 'lower'} than 
+                    last {viewMode === 'monthly' ? 'month' : 'week'} by {Math.abs(selectedMonth.totalUnits - data[data.length - 2].totalUnits).toFixed(2)}kWh.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
-        {/* Add New Month Data */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Add New Month Data</h2>
+        {/* Add New Data Section */}
+        <div className="bg-white rounded-xl shadow p-4">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Add New Month Data</h2>
           <form onSubmit={handleAddMonth} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="month" className="block text-sm font-medium text-gray-700">Month</label>
+                <label htmlFor="month" className="block text-sm font-medium text-gray-700 mb-1">Month</label>
                 <input
                   type="text"
                   id="month"
                   name="month"
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g. July 2023"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               
               <div>
-                <label htmlFor="units" className="block text-sm font-medium text-gray-700">Total Units (kWh)</label>
+                <label htmlFor="units" className="block text-sm font-medium text-gray-700 mb-1">Total Units (kWh)</label>
                 <input
                   type="number"
                   id="units"
@@ -941,12 +612,13 @@ const UsageDashboard = () => {
                   required
                   min="1"
                   step="0.1"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g. 350"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               
               <div>
-                <label htmlFor="days" className="block text-sm font-medium text-gray-700">Days in Month</label>
+                <label htmlFor="days" className="block text-sm font-medium text-gray-700 mb-1">Days in Month</label>
                 <input
                   type="number"
                   id="days"
@@ -954,19 +626,26 @@ const UsageDashboard = () => {
                   required
                   min="28"
                   max="31"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="28-31"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>
             
             <button
               type="submit"
-              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md"
+              className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-md transition duration-150"
             >
               Add Month Data
             </button>
           </form>
         </div>
+        
+        {/* Footer */}
+        <footer className="mt-8 text-center text-gray-500 text-sm">
+          <p>Electricity Usage Analytics Dashboard • Data updates in real-time</p>
+          <p className="mt-1">© {new Date().getFullYear()} Energy Management System</p>
+        </footer>
       </div>
     </div>
   );
