@@ -8,6 +8,7 @@ import History from './components/History';
 import Appliances from'./components/Appliances';
 import Dashboard from './components/Dashboard';
 import Gemini from './components/gemini';
+import Wheather from './components/Wheather';
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
   {
     path:"/gemini",
     element:<Gemini/>
+  },
+  {
+    path: "/wheather",
+    element: <Wheather />, 
   },
 
  

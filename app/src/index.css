@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+
+:root {
+    --saffron: #FF9933;
+    --green: #138808;
+    --navyblue: #000080;
+  }
+  
+  .bg-saffron { background-color: var(--saffron); }
+  .text-saffron { color: var(--saffron); }
+  .border-saffron { border-color: var(--saffron); }
+  
+  .bg-green { background-color: var(--green); }
+  .text-green { color: var(--green); }
+  
+  .bg-navyblue { background-color: var(--navyblue); }
+  .text-navyblue { color: var(--navyblue); }
