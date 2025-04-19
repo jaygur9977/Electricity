@@ -9,6 +9,7 @@ import Appliances from'./components/Appliances';
 import Dashboard from './components/Dashboard';
 import Gemini from './components/gemini';
 import Wheather from './components/Wheather';
+import Watsapp from './components/Watsapp';
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
   {
     path: "/wheather",
     element: <Wheather />, 
+  },
+  {
+    path: "/watsapp",
+    element: <Watsapp />, 
   },
 
  
