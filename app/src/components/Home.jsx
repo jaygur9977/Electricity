@@ -504,7 +504,7 @@ export default function KriyetaApp() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              Welcome back, <span className="text-orange-300">Aryan</span>!
+              Welcome back<span className="text-orange-300"></span>!
             </motion.h1>
             <motion.p 
               className="text-lg text-blue-100 mb-6"
