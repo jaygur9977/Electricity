@@ -1,203 +1,134 @@
-
-
-// require('dotenv').config();
-// const express = require('express');
-// const cors = require('cors');
-// const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-// const app = express();
-// const port = process.env.PORT || 5000;
-
-// // Middleware
-// app.use(cors());
-// app.use(express.json());
-
-// // Initialize Gemini AI
-// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// // Combined endpoint for weather and suggestions
-// app.post('/api/weather-suggestions', async (req, res) => {
-//   try {
-//     const { location } = req.body;
-
-//     // 1. First fetch weather data
-//     const weatherApiKey = process.env.WEATHER_API_KEY || "5660c1d2975c42a9be6160711251904";
-//     const weatherUrl = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${encodeURIComponent(location)}&aqi=no`;
-
-//     const weatherResponse = await fetch(weatherUrl);
-//     const weatherData = await weatherResponse.json();
-
-//     if (weatherData.error) {
-//       return res.status(400).json({ error: weatherData.error.message });
-//     }
-
-//     // 2. Generate energy conservation suggestions
-//     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
-//     const prompt = `Given the current weather conditions:
-//     - Location: ${weatherData.location.name}, ${weatherData.location.country}
-//     - Temperature: ${weatherData.current.temp_c}°C (feels like ${weatherData.current.feelslike_c}°C)
-//     - Weather Condition: ${weatherData.current.condition.text}
-//     - Humidity: ${weatherData.current.humidity}%
-//     - Wind Speed: ${weatherData.current.wind_kph} km/h
-//     - UV Index: ${weatherData.current.uv}
-    
-//     Provide 3-5 crisp energy-saving recommendations in this exact format:
-// • [Icon] [Action] - [Brief reason]
-// • [Icon] [Action] - [Brief reason]
-// • [Icon] [Action] - [Brief reason]
-
-// Use these icons based on weather:
-// ☀️ for sunny/hot
-// 🌧️ for rainy/wet
-// ❄️ for cold
-// 💨 for windy
-// 🌤️ for mild
-
-// Example:
-// • ❄️ Lower thermostat by 2°C - Saves 5% heating costs in cold weather
-// • 💨 Open windows for ventilation - Uses natural wind instead of AC`;
-
-//     const result = await model.generateContent(prompt);
-//     const response = await result.response;
-//     const suggestions = response.text();
-
-//     res.json({
-//       weather: weatherData,
-//       suggestions
-//     });
-
-//   } catch (error) {
-//     console.error('Error:', error);
-//     res.status(500).json({
-//       error: 'Failed to process request',
-//       details: error.message
-//     });
-//   }
-// });
-
-// app.listen(port, () => {
-//   console.log(`Server running on http://localhost:${port}`);
-// });
-
-
-
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const nodemailer = require('nodemailer');
-const cron = require('node-cron');
-const fetch = require('node-fetch');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Rate limiting to prevent excessive API calls
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // limit each IP to 30 requests per windowMs
+  message: 'Too many requests from this IP, please try again later'
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/api/weather-suggestions', limiter);
+
+// Fallback suggestions for when API quota is exceeded
+const FALLBACK_SUGGESTIONS = `
+• ☀️ Use blinds/curtains during peak sunlight - Reduces AC workload
+• 💨 Use natural ventilation when possible - Saves fan/AC energy
+• ❄️ Set thermostat to 24°C (75°F) - Optimal for energy savings
+• 🌙 Turn off unnecessary lights at night - Reduces electricity usage
+`;
 
 // Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// Email transporter configuration
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-// Scheduled job (runs every day at 8 AM)
-cron.schedule('39 9 * * *', async () => {
-  try {
-    console.log('Running scheduled job...');
-    
-    // Default location (you can make this configurable)
-    const location = 'Indore';
-    
-    // Get weather and suggestions
-    const { weatherData, suggestions } = await getWeatherAndSuggestions(location);
-    
-    // Email options
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: 'jaygurjarband224@gmail.com',
-      subject: `Daily Energy Tips for ${location} - ${new Date().toLocaleDateString()}`,
-      text: `Weather in ${location}:\n` +
-            `- Temperature: ${weatherData.current.temp_c}°C\n` +
-            `- Condition: ${weatherData.current.condition.text}\n\n` +
-            `Energy Conservation Tips:\n${suggestions}`,
-    };
-
-    // Send email
-    await transporter.sendMail(mailOptions);
-    console.log('Scheduled email sent successfully');
-  } catch (error) {
-    console.error('Error in scheduled job:', error);
-  }
-});
-
-async function getWeatherAndSuggestions(location) {
-  const weatherApiKey = process.env.WEATHER_API_KEY || "5660c1d2975c42a9be6160711251904";
-  const weatherUrl = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${encodeURIComponent(location)}&aqi=no`;
-
-  const weatherResponse = await fetch(weatherUrl);
-  const weatherData = await weatherResponse.json();
-
-  if (weatherData.error) {
-    throw new Error(weatherData.error.message);
-  }
-
-  // Generate energy conservation suggestions
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
-  const prompt = `Given the current weather conditions:
-  - Location: ${weatherData.location.name}, ${weatherData.location.country}
-  - Temperature: ${weatherData.current.temp_c}°C (feels like ${weatherData.current.feelslike_c}°C)
-  - Weather Condition: ${weatherData.current.condition.text}
-  - Humidity: ${weatherData.current.humidity}%
-  - Wind Speed: ${weatherData.current.wind_kph} km/h
-  - UV Index: ${weatherData.current.uv}
-  
-  Provide 3-5 crisp energy-saving recommendations in this exact format:
-• [Icon] [Action] - [Brief reason]
-• [Icon] [Action] - [Brief reason]
-• [Icon] [Action] - [Brief reason]
-
-Use these icons based on weather:
-☀️ for sunny/hot
-🌧️ for rainy/wet
-❄️ for cold
-💨 for windy
-🌤️ for mild`;
-
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const suggestions = response.text();
-
-  return { weatherData, suggestions };
+let genAI;
+try {
+  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+} catch (err) {
+  console.error('Failed to initialize Gemini AI:', err.message);
 }
 
-// Combined endpoint for weather and suggestions
+// Simple cache implementation
+const suggestionCache = new Map();
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
 app.post('/api/weather-suggestions', async (req, res) => {
   try {
     const { location } = req.body;
-    const { weatherData, suggestions } = await getWeatherAndSuggestions(location);
+
+    if (!location || typeof location !== 'string') {
+      return res.status(400).json({ 
+        error: 'Please provide a valid location',
+        suggestions: FALLBACK_SUGGESTIONS
+      });
+    }
+
+    // 1. Fetch weather data
+    const weatherApiKey = process.env.WEATHER_API_KEY;
+    const weatherUrl = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${encodeURIComponent(location)}&aqi=no`;
+
+    const weatherResponse = await fetch(weatherUrl);
+    const weatherData = await weatherResponse.json();
+
+    if (weatherData.error) {
+      return res.status(400).json({ 
+        error: weatherData.error.message,
+        suggestions: FALLBACK_SUGGESTIONS
+      });
+    }
+
+    // Check cache first
+    const cacheKey = `${location}-${weatherData.current.temp_c}`;
+    if (suggestionCache.has(cacheKey)) {
+      const cached = suggestionCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < CACHE_TTL) {
+        return res.json({
+          weather: weatherData,
+          suggestions: cached.suggestions,
+          cached: true,
+          usingFallback: false
+        });
+      }
+    }
+
+    // 2. Try to get Gemini suggestions or use fallback
+    let suggestions;
+    let usingFallback = true;
     
+    if (genAI) {
+      try {
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" }); // Use basic model
+        
+        const prompt = `Provide 3-5 brief energy saving tips for ${weatherData.current.temp_c}°C weather in ${weatherData.location.name} in bullet point format.`;
+        
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        suggestions = response.text();
+        usingFallback = false;
+        
+        // Cache successful API responses
+        suggestionCache.set(cacheKey, {
+          suggestions,
+          timestamp: Date.now()
+        });
+      } catch (geminiError) {
+        console.warn('Gemini API error:', geminiError.message);
+        suggestions = FALLBACK_SUGGESTIONS;
+      }
+    } else {
+      suggestions = FALLBACK_SUGGESTIONS;
+    }
+
     res.json({
       weather: weatherData,
-      suggestions
+      suggestions,
+      usingFallback
     });
+
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({
       error: 'Failed to process request',
-      details: error.message
+      details: error.message,
+      suggestions: FALLBACK_SUGGESTIONS,
+      usingFallback: true
     });
   }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok',
+    cacheSize: suggestionCache.size
+  });
 });
 
 app.listen(port, () => {
