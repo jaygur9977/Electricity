@@ -8,69 +8,74 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Real appliance benchmarks (Source: Bureau of Energy Efficiency India)
-const APPLIANCE_STANDARDS = {
-  "Refrigerator": { wattage: 150, usage: 24 },
-  "LED TV": { wattage: 80, usage: 4 },
-  "AC (1.5 Ton)": { wattage: 1500, usage: 8 },
-  "Ceiling Fan": { wattage: 75, usage: 12 },
-  "Washing Machine": { wattage: 500, usage: 1 },
-  "Laptop": { wattage: 50, usage: 6 }
-};
-
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-app.post('/api/calculate-energy', async (req, res) => {
+// Combined endpoint for weather and suggestions
+app.post('/api/weather-suggestions', async (req, res) => {
   try {
-    const { householdData } = req.body;
-    const costPerKwh = householdData.costPerKwh || 6.5; // ₹6.5/kWh avg in India
-    
+    const { location } = req.body;
+
+    // 1. First fetch weather data
+    const weatherApiKey = process.env.WEATHER_API_KEY || "5660c1d2975c42a9be6160711251904";
+    const weatherUrl = `https://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${encodeURIComponent(location)}&aqi=no`;
+
+    const weatherResponse = await fetch(weatherUrl);
+    const weatherData = await weatherResponse.json();
+
+    if (weatherData.error) {
+      return res.status(400).json({ error: weatherData.error.message });
+    }
+
+    // 2. Generate energy conservation suggestions
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+    const prompt = `Given the current weather conditions:
+    - Location: ${weatherData.location.name}, ${weatherData.location.country}
+    - Temperature: ${weatherData.current.temp_c}°C (feels like ${weatherData.current.feelslike_c}°C)
+    - Weather Condition: ${weatherData.current.condition.text}
+    - Humidity: ${weatherData.current.humidity}%
+    - Wind Speed: ${weatherData.current.wind_kph} km/h
+    - UV Index: ${weatherData.current.uv}
     
-    const prompt = `Analyze appliance data for Indian household:
-    - Rate: ₹${costPerKwh}/kWh
-    - Appliances: ${JSON.stringify(householdData.appliances)}
-    
-    Return JSON with:
-    - kWh/day/week/month
-    - Costs in ₹
-    - 3 conservation tips per appliance
-    - Comparison to BEE 5-star rated appliances
-    
-    Format:
-    {
-      "summary": "...",
-      "appliances": [
-        {
-          "name": "AC",
-          "dailyKwh": 12,
-          "monthlyCost": 2340,
-          "tips": ["Use at 24°C", "Clean filters monthly"],
-          "beeComparison": "Your AC uses 20% more than 5-star model"
-        }
-      ],
-      "totals": {
-        "monthlyKwh": 320,
-        "monthlyCost": 2080
-      }
-    }`;
+    Provide 3-5 crisp energy-saving recommendations in this exact format:
+• [Icon] [Action] - [Brief reason]
+• [Icon] [Action] - [Brief reason]
+• [Icon] [Action] - [Brief reason]
+
+Use these icons based on weather:
+☀️ for sunny/hot
+🌧️ for rainy/wet
+❄️ for cold
+💨 for windy
+🌤️ for mild
+
+Example:
+• ❄️ Lower thermostat by 2°C - Saves 5% heating costs in cold weather
+• 💨 Open windows for ventilation - Uses natural wind instead of AC`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const jsonMatch = response.text().match(/\{[\s\S]*\}/);
-    
-    res.json(jsonMatch ? JSON.parse(jsonMatch[0]) : { error: "Invalid response" });
+    const suggestions = response.text();
+
+    res.json({
+      weather: weatherData,
+      suggestions
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Analysis failed" });
+    console.error('Error:', error);
+    res.status(500).json({
+      error: 'Failed to process request',
+      details: error.message
+    });
   }
 });
 
-app.get('/api/standard-appliances', (req, res) => {
-  res.json(APPLIANCE_STANDARDS);
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });
-
-app.listen(port, () => console.log(`Server running on port ${port}`));
