@@ -143,7 +143,7 @@ const Navbar = () => {
     <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center">
       <div className="flex items-center">
         <button onClick={handleHome} className="p-0 m-0">
-          <img src="/logo-ab.jpeg" alt="Logo" className="h-10 w-auto max-h-10 object-contain" />
+          <img src="/newlogo.jpg" alt="Logo" className="h-10 w-auto max-h-10 object-contain" />
         </button>
       </div>
       {/* Auth Modal */}
