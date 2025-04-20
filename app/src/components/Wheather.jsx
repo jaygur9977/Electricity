@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import emailjs from 'emailjs-com';
+import emailjs from '@emailjs/browser';
 
-// Fallback suggestions for frontend use
 const FALLBACK_SUGGESTIONS = `
 • ☀️ Use blinds/curtains during peak sunlight - Reduces AC workload
 • 💨 Use natural ventilation when possible - Saves fan/AC energy
@@ -11,6 +10,7 @@ const FALLBACK_SUGGESTIONS = `
 
 const IntegratedApp = () => {
   const [location, setLocation] = useState('');
+  const [email, setEmail] = useState('');
   const [weatherData, setWeatherData] = useState(null);
   const [suggestions, setSuggestions] = useState('');
   const [loading, setLoading] = useState(false);
@@ -53,15 +53,20 @@ const IntegratedApp = () => {
       setUsingFallback(data.usingFallback || false);
       setApiStatus(data.cached ? 'Using cached data' : '');
 
-      // Only try to send email if we got real suggestions
-      if (!data.usingFallback) {
-        await sendEmail(data.suggestions);
+      // Automatically send email if email was provided
+      if (email) {
+        await sendEmail(data.suggestions || FALLBACK_SUGGESTIONS);
       }
     } catch (err) {
       console.error("Error:", err);
       setError(err.message || "Failed to get weather data");
       setSuggestions(FALLBACK_SUGGESTIONS);
       setUsingFallback(true);
+      
+      // Try to send fallback suggestions if email was provided
+      if (email) {
+        await sendEmail(FALLBACK_SUGGESTIONS);
+      }
     } finally {
       setLoading(false);
     }
@@ -73,7 +78,7 @@ const IntegratedApp = () => {
         'service_blw3mjs',
         'template_l4z2ifn',
         {
-          to_email: 'jaygurjarband224@gmail.com',
+          to_email: email,
           subject: `Energy Tips for ${location} - ${new Date().toLocaleDateString()}`,
           message: suggestionText
         },
@@ -82,6 +87,7 @@ const IntegratedApp = () => {
       setEmailSent(true);
     } catch (error) {
       console.error('Email sending failed:', error);
+      // Don't show error to user - it's a background operation
     }
   };
 
@@ -106,7 +112,6 @@ const IntegratedApp = () => {
     return text.split('\n')
       .filter(line => line.trim())
       .map((line, i) => {
-        // Clean up the line and ensure consistent formatting
         const cleanedLine = line.replace(/^[•*-]\s*/, '').trim();
         return <p key={i} className="mb-2">• {cleanedLine}</p>;
       });
@@ -120,21 +125,38 @@ const IntegratedApp = () => {
         </h1>
 
         <div className="mb-6 bg-white bg-opacity-90 rounded-xl shadow-lg p-6">
-          <div className="relative">
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Enter city or zip code"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={loading}
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Enter city or zip code"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email to receive tips"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading}
+              />
+              <p className="text-xs text-gray-500 mt-1">We'll automatically email the suggestions to you</p>
+            </div>
           </div>
+
           <button
             onClick={getWeatherAndSuggestions}
             disabled={loading}
-            className={`w-full mt-3 p-3 rounded-lg font-bold text-white transition-all ${
+            className={`w-full mt-4 p-3 rounded-lg font-bold text-white transition-all ${
               loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 hover:-translate-y-0.5'
             }`}
           >
