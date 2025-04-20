@@ -5,7 +5,7 @@ const handelhistory = () => {
   };
 
 const handelAppliances = () => { 
-      window.location.href = '/appliances';
+      window.location.href = '/gemini';
   };
 
   const handleHome = () => { 
@@ -15,6 +15,11 @@ const handelAppliances = () => {
 
   const handleDashboard = () => { 
     window.location.href = '/dashboard';
+};
+
+
+const handleEmail = () => { 
+  window.location.href = '/wheather';
 };
 
 const initializeLocalStorage = () => {
@@ -225,6 +230,10 @@ const Navbar = () => {
         <button className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
         onClick={handelAppliances}>
           Appliances
+        </button>
+        <button className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
+        onClick={handleEmail}>
+         weather
         </button>
         
         {user ? (
