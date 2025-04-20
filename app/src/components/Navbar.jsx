@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from "react";
 
-const handelhistory = () => { 
-      window.location.href = '/history';
-  };
+const handelhistory = () => {
+  window.location.href = '/history';
+};
 
-const handelAppliances = () => { 
-      window.location.href = '/gemini';
-  };
+const handelAppliances = () => {
+  window.location.href = '/gemini';
+};
 
-  const handleHome = () => { 
-    window.location.href = '/';
+const handleHome = () => {
+  window.location.href = '/';
 };
 
 
-  const handleDashboard = () => { 
-    window.location.href = '/dashboard';
+const handleDashboard = () => {
+  window.location.href = '/dashboard';
 };
 
 
-const handleEmail = () => { 
+const handleEmail = () => {
   window.location.href = '/wheather';
 };
 
@@ -105,7 +105,7 @@ const Navbar = () => {
     setIsLoading(true);
     try {
       const foundUser = getUserByEmail(formData.email);
-      
+
       if (!foundUser) {
         alert('User not found');
         return;
@@ -141,8 +141,11 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white shadow-md px-6 py-3 flex justify-between items-center">
-      <div className="text-2xl font-bold text-green-600"><button onClick={handleHome}>MyLogo</button></div>
-
+      <div className="flex items-center">
+        <button onClick={handleHome} className="p-0 m-0">
+          <img src="/logo-ab.jpeg" alt="Logo" className="h-10 w-auto max-h-10 object-contain" />
+        </button>
+      </div>
       {/* Auth Modal */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -150,7 +153,7 @@ const Navbar = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-4">
               {authMode === 'signup' ? 'Sign Up' : 'Login'}
             </h2>
-            
+
             {authMode === 'signup' && (
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2">Name</label>
@@ -163,7 +166,7 @@ const Navbar = () => {
                 />
               </div>
             )}
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
               <input
@@ -174,7 +177,7 @@ const Navbar = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            
+
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
               <input
@@ -185,7 +188,7 @@ const Navbar = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            
+
             <div className="flex flex-col space-y-2">
               <button
                 onClick={authMode === 'signup' ? handleSignUp : handleLogin}
@@ -194,7 +197,7 @@ const Navbar = () => {
               >
                 {isLoading ? 'Processing...' : authMode === 'signup' ? 'Sign Up' : 'Login'}
               </button>
-              
+
               <button
                 onClick={() => setAuthMode(authMode === 'signup' ? 'login' : 'signup')}
                 className="w-full text-blue-600 hover:text-blue-800 py-2 px-4 rounded transition"
@@ -202,7 +205,7 @@ const Navbar = () => {
                 {authMode === 'signup' ? 'Already have an account? Login' : 'Need an account? Sign Up'}
               </button>
             </div>
-            
+
             <button
               onClick={() => setShowAuthModal(false)}
               className="mt-4 w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded transition"
@@ -214,28 +217,28 @@ const Navbar = () => {
       )}
 
       <div className="flex space-x-4 items-center">
-      <button className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
-        onClick={handleHome}>
+        <button className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
+          onClick={handleHome}>
           Home
         </button>
 
         <button className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
-        onClick={handleDashboard}>
+          onClick={handleDashboard}>
           Dashboard
         </button>
         <button className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
-        onClick={handelhistory}>
+          onClick={handelhistory}>
           History
         </button>
         <button className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
-        onClick={handelAppliances}>
+          onClick={handelAppliances}>
           Appliances
         </button>
         <button className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md"
-        onClick={handleEmail}>
-         weather
+          onClick={handleEmail}>
+          weather
         </button>
-        
+
         {user ? (
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
